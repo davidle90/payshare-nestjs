@@ -9,6 +9,7 @@ import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { InboxModule } from './modules/inbox/inbox.module';
+import { GroupsModule } from './modules/groups/groups.module';
 
 @Module({
   imports: [
@@ -16,7 +17,8 @@ import { InboxModule } from './modules/inbox/inbox.module';
     DatabaseModule,
     UsersModule,
     AuthModule,
-    InboxModule
+    InboxModule,
+    GroupsModule
   ],
   controllers: [AppController],
   providers: [
