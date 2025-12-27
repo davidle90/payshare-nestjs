@@ -2,15 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Group } from './entities/group.entity';
 import { CreateGroupDto } from './dto/create-group-dto';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class GroupsService {
-    constructor(private readonly groupRepository: Repository<Group>) {}
+    constructor(
+        @InjectRepository(Group)
+        private readonly groupRepository: Repository<Group>
+    ) {}
 
-    findAll(sort: 'asc' | 'desc' = 'desc') {
-        return this.groupRepository.find({
-            order: { name: sort.toUpperCase() as 'ASC' | 'DESC' },
-        });
+    findAll() {
+        return this.groupRepository.find();
     }
 
     findOne(id: string) {

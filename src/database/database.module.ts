@@ -4,6 +4,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import databaseConfig from '../config/database.config'
 import { User } from '../modules/users/entities/user.entity';
 import { Role } from '../modules/acl/roles/role.entity';
+import { Group } from 'src/modules/groups/entities/group.entity';
+import { GroupMember } from 'src/modules/groups/entities/group-member.entity';
 
 @Module({
   imports: [
@@ -16,7 +18,7 @@ import { Role } from '../modules/acl/roles/role.entity';
         if (!db) throw new Error('Database config not found!');
         return {
           ...db,
-          entities: [User, Role],
+          entities: [User, Role, Group, GroupMember],
         };
       },
     }),

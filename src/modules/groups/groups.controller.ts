@@ -9,11 +9,8 @@ export class GroupsController {
     ) {}
 
     @Get()
-    findAll(
-        @Query('sort') sort: 'asc' | 'desc' = 'desc',
-        @Query('limit', new DefaultValuePipe(100), ParseIntPipe) limit: number,
-    ) {
-        return this.groupsService.findAll(sort);
+    findAll() {
+        return this.groupsService.findAll();
     }
 
     @Get(':id')
