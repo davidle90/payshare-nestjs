@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateExpenseGroupDto } from '../dto/create-expense-group-dto';
@@ -21,12 +21,23 @@ export class ExpenseGroupService {
         @InjectRepository(ExpenseDebt) private readonly debtRepository: Repository<ExpenseDebt>,
     ) {}
 
-    async findAll() {
-        return await this.groupRepository.find();
+    async findAll({ search }: { search?: string }) {
+        const qb = this.groupRepository.createQueryBuilder('expenseGroup');
+
+        if (search?.trim()) {
+            qb.andWhere(
+            '(expenseGroup.name ILIKE :search OR expenseGroup.referenceId ILIKE :search)',
+            { search: `%${search.trim()}%` },
+            );
+        }
+
+        qb.orderBy('expenseGroup.createdAt', 'DESC');
+
+        return qb.getMany();
     }
 
-    async findOne(id: string) {
-        return await this.groupRepository.findOneBy({ id });
+    async findOne(referenceId: string) {
+        return await this.groupRepository.findOneBy({ referenceId });
     }
 
     async create(input: CreateExpenseGroupDto) {
@@ -47,7 +58,11 @@ export class ExpenseGroupService {
     }
 
     async update(id: string, input: UpdateExpenseGroupDto) {
-        return await this.groupRepository.update(id, input);
+        await this.groupRepository.update(id, input);
+        const group = await this.groupRepository.findOneBy({ id })
+        if (!group) throw new NotFoundException('Group not found');
+
+        return group;
     }
 
     async delete(id: string) {

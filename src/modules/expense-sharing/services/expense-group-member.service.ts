@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/modules/users/entities/user.entity';
+import { User } from '../../../modules/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { UpdateExpenseGroupMemberDto } from '../dto/update-expense-group-member-dto';
 import { ExpenseGroupMember } from '../entities/expense-group-member.entity';
@@ -16,7 +16,7 @@ export class ExpenseGroupMemberService {
         private readonly expenseGroupService: ExpenseGroupService
     ) {}
 
-    async addMember(groupId: string, userId: string) {
+    async addMember(groupId: string, userId: string, role: string = 'member') {
         const userExists = await this.userRepository.findOneBy({ id: userId });
 
         if (!userExists) {
@@ -26,7 +26,7 @@ export class ExpenseGroupMemberService {
         const member = this.memberRepository.create( {
             group: { id: groupId },
             user: { id: userId },
-            role: 'member'
+            role
         });
 
         return await this.memberRepository.save(member);

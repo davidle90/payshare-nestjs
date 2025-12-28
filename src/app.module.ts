@@ -9,7 +9,6 @@ import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { InboxModule } from './modules/inbox/inbox.module';
-import { GroupsModule } from './modules/groups/groups.module';
 import { ExpenseSharingModule } from './modules/expense-sharing/expense-sharing.module';
 
 @Module({
@@ -19,7 +18,6 @@ import { ExpenseSharingModule } from './modules/expense-sharing/expense-sharing.
     UsersModule,
     AuthModule,
     InboxModule,
-    GroupsModule,
     ExpenseSharingModule
   ],
   controllers: [AppController],

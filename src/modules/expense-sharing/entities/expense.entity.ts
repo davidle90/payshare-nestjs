@@ -13,6 +13,9 @@ export class Expense {
   groupId: string;
 
   @Column()
+  referenceId: string;
+
+  @Column()
   name: string;
 
   @Column()
