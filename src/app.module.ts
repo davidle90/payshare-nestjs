@@ -10,6 +10,7 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { InboxModule } from './modules/inbox/inbox.module';
 import { GroupsModule } from './modules/groups/groups.module';
+import { ExpenseSharingModule } from './modules/expense-sharing/expense-sharing.module';
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { GroupsModule } from './modules/groups/groups.module';
     UsersModule,
     AuthModule,
     InboxModule,
-    GroupsModule
+    GroupsModule,
+    ExpenseSharingModule
   ],
   controllers: [AppController],
   providers: [

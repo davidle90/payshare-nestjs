@@ -18,7 +18,8 @@
     "migration:run": "node scripts/run-migration.js run",
     "migration:revert": "node scripts/run-migration.js revert",
 
-    "db:seed": "ts-node -r tsconfig-paths/register scripts/run-seeder.ts",
+    "db:seed:wip": "ts-node -r tsconfig-paths/register scripts/run-seeder.ts",
+    "db:seed": "npx ts-node -r tsconfig-paths/register src/seeders/DatabaseSeeder.ts",
 
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",

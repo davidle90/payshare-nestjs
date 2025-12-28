@@ -2,10 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import databaseConfig from '../config/database.config'
-import { User } from '../modules/users/entities/user.entity';
-import { Role } from '../modules/acl/roles/role.entity';
-import { Group } from 'src/modules/groups/entities/group.entity';
-import { GroupMember } from 'src/modules/groups/entities/group-member.entity';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -18,7 +15,11 @@ import { GroupMember } from 'src/modules/groups/entities/group-member.entity';
         if (!db) throw new Error('Database config not found!');
         return {
           ...db,
-          entities: [User, Role, Group, GroupMember],
+          // Use a glob pattern to automatically include all entities
+          entities: [
+            join(__dirname, '..', '**', '*.entity.{ts,js}'),  // Adjust the glob pattern to match your file structure
+          ],
+          synchronize: true,  // This can be false in production
         };
       },
     }),

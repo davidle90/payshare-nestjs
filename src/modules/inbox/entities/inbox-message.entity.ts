@@ -3,11 +3,10 @@ import {
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
-  Index,
 } from 'typeorm';
 
 @Entity()
-export class Message {
+export class InboxMessage {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
