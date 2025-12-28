@@ -11,9 +11,9 @@ export class ExpenseContributor {
   expenseId: string;
 
   @Column()
-  userId: string;
+  memberId: string;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column('decimal', { precision: 10, scale: 2, default: 0 })
   amountPaid: number;
 
   @CreateDateColumn()

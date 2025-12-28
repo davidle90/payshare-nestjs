@@ -21,7 +21,7 @@ export class Expense {
   @Column()
   currency: string;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column('decimal', { precision: 10, scale: 2, default: 0 })
   totalAmount: number;
 
   @Column({ default: false })
@@ -36,7 +36,7 @@ export class Expense {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToOne(() => ExpenseGroup, group => group.expenses)
+  @ManyToOne(() => ExpenseGroup, group => group.expenses, { onDelete: 'CASCADE'})
   group: ExpenseGroup;
   
   @ManyToOne(() => User)

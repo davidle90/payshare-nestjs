@@ -1,20 +1,24 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/modules/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateExpenseGroupDto } from '../dto/create-expense-group-dto';
-import { UpdateExpenseGroupMemberDto } from '../dto/update-expense-group-member-dto';
-import { ExpenseGroupMember } from '../entities/expense-group-member.entity';
 import { ExpenseGroup } from '../entities/expense-group.entity';
-import { Expense } from '../entities/expense.entity';
+import { UpdateExpenseGroupDto } from '../dto/update-expense-group-dto';
+import { ExpenseDebt } from '../entities/expense-debt.entity';
+
+type BalanceMap = Record<string, Record<string, number>>;
+
+interface Transaction {
+  from: string;
+  to: string;
+  amount: number;
+}
 
 @Injectable()
 export class ExpenseGroupService {
     constructor(
-        @InjectRepository(User) private readonly userRepository: Repository<User>,
         @InjectRepository(ExpenseGroup) private readonly groupRepository: Repository<ExpenseGroup>,
-        @InjectRepository(ExpenseGroupMember) private readonly memberRepository: Repository<ExpenseGroupMember>,
-        @InjectRepository(Expense) private readonly expenseRepository: Repository<Expense>
+        @InjectRepository(ExpenseDebt) private readonly debtRepository: Repository<ExpenseDebt>,
     ) {}
 
     async findAll() {
@@ -26,11 +30,23 @@ export class ExpenseGroupService {
     }
 
     async create(input: CreateExpenseGroupDto) {
-        const group = this.groupRepository.create(input);
+        let referenceId: string;
+        let exists: ExpenseGroup | null;
+
+        do {
+            referenceId = generateReferenceId();
+            exists = await this.groupRepository.findOneBy({ referenceId });
+        } while (exists);
+
+        const group = this.groupRepository.create({
+            ...input,
+            referenceId
+        });
+
         return await this.groupRepository.save(group);
     }
 
-    async update(id: string, input: CreateExpenseGroupDto) {
+    async update(id: string, input: UpdateExpenseGroupDto) {
         return await this.groupRepository.update(id, input);
     }
 
@@ -38,51 +54,143 @@ export class ExpenseGroupService {
         return await this.groupRepository.delete(id);
     }
 
-    async addMember(groupId: string, userId: string) {
-        const userExists = await this.userRepository.findOneBy({ id: userId });
+    async updateTotalExpenses(group: ExpenseGroup) {
+        let totalExpenses = 0;
 
-        if (!userExists) {
-            throw new NotFoundException('User not found');
+        for (const expense of group.expenses) {
+            totalExpenses += Number(expense.totalAmount);
         }
 
-        const member = this.memberRepository.create( {
-            group: { id: groupId },
-            user: { id: userId },
-            role: 'member'
+        await this.groupRepository.update(group.id, { totalExpenses });
+    }
+
+    async calculateBalance(group: ExpenseGroup): Promise<BalanceMap> {
+        const debts: BalanceMap = {};
+        const balance: BalanceMap = {};
+
+        // Step 1: Calculate debts in memory
+        for (const expense of group.expenses) {
+            const participantsWithoutExpenses = expense.participants.filter(p => p.amountOwed === 0);
+            const participantsWithExpenses = expense.participants.filter(p => p.amountOwed > 0);
+
+            if (!participantsWithoutExpenses.length) continue;
+
+            const totalOwed = participantsWithExpenses.reduce(
+                (sum, p) => sum + Number(p.amountOwed),
+                0,
+            );
+
+            for (const contributor of expense.contributors) {
+                const debtPerMember = (Number(contributor.amountPaid) - totalOwed) / participantsWithoutExpenses.length;
+
+                // Debts to participants without expenses
+                for (const participant of participantsWithoutExpenses) {
+                    if (participant.memberId === contributor.memberId) continue;
+
+                    debts[participant.memberId] ??= {};
+                    debts[participant.memberId][contributor.memberId] ??= 0;
+                    debts[participant.memberId][contributor.memberId] += debtPerMember;
+                }
+
+                // Debts to participants with expenses
+                for (const participant of participantsWithExpenses) {
+                    if (participant.memberId === contributor.memberId) continue;
+
+                    debts[participant.memberId] ??= {};
+                    debts[participant.memberId][contributor.memberId] ??= 0;
+                    debts[participant.memberId][contributor.memberId] += Number(participant.amountOwed);
+                }
+            }
+        }
+
+        // Step 2: Calculate net balances
+        for (const fromId in debts) {
+            for (const toId in debts[fromId]) {
+                if (fromId === toId) continue;
+
+                balance[fromId] ??= {};
+                balance[toId] ??= {};
+
+                balance[fromId][toId] ??= 0;
+                balance[toId][fromId] ??= 0;
+
+                balance[fromId][toId] += debts[fromId][toId];
+                balance[toId][fromId] -= debts[fromId][toId];
+            }
+        }
+
+        // Step 3: Prepare batch DB updates
+        const debtEntities: Partial<ExpenseDebt>[] = [];
+        for (const fromId in balance) {
+            for (const toId in balance[fromId]) {
+                if (fromId === toId) continue;
+
+                debtEntities.push({
+                    groupId: group.id,
+                    fromUserId: fromId,
+                    toUserId: toId,
+                    amount: balance[fromId][toId],
+                });
+            }
+        }
+
+        // Step 4: Batch create or update to DB
+        await this.debtRepository
+            .createQueryBuilder()
+            .insert()
+            .into(ExpenseDebt)
+            .values(debtEntities)
+            .orUpdate(
+                ['amount'], // columns to update if conflict
+                ['groupId', 'fromUserId', 'toUserId'], // unique constraint
+            )
+            .execute();
+
+        return balance;
+    }
+
+    async simplifyTransactions(group: ExpenseGroup): Promise<Transaction[]> {
+        const balance = await this.calculateBalance(group);
+        return simplifyBalance(balance);
+    }
+}
+
+function generateReferenceId(length = 6): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let reference = '';
+  for (let i = 0; i < length; i++) {
+    reference += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return reference;
+}
+
+function simplifyBalance(balance: BalanceMap): Transaction[] {
+    const transactions: Transaction[] = [];
+    const processed = new Set<string>(); // avoid double-processing
+
+    const members = Object.keys(balance);
+
+    for (const from of members) {
+        for (const to of members) {
+        if (from === to) continue;
+
+        const key = [from, to].sort().join('-'); // unique pair
+        if (processed.has(key)) continue;
+
+        const fromTo = balance[from][to] || 0;
+        const toFrom = balance[to][from] || 0;
+
+        const netAmount = fromTo - toFrom;
+
+        transactions.push({
+            from,
+            to,
+            amount: netAmount > 0 ? netAmount : 0,
         });
 
-        return await this.memberRepository.save(member);
-    }
-
-    async removeMember(groupId: string, userId: string) {
-        const member = await this.memberRepository.findOne({
-            where: {
-            group: { id: groupId },
-            user: { id: userId },
-            },
-        });
-
-        if (!member) {
-            throw new NotFoundException('Member not found');
+        processed.add(key);
         }
-
-        return await this.memberRepository.remove(member);
     }
 
-    async updateMember(memberId: string, input: UpdateExpenseGroupMemberDto) {
-        const member = await this.memberRepository.findOneBy({ id: memberId });
-
-        if (!member) {
-            throw new NotFoundException('Member not found');
-        }
-
-        await this.memberRepository.update(member.id, input);
-        const updatedMember = await this.memberRepository.findOneBy({ id: member.id });
-
-        return updatedMember;
-    }
-
-    async inviteUserToGroup(userId: string, groupId: string) {
-        return await `${userId} has been invited to join the group "${groupId}".`
-    }
+    return transactions;
 }

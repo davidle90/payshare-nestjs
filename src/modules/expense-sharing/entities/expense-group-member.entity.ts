@@ -16,7 +16,7 @@ export class ExpenseGroupMember {
   @UpdateDateColumn()
   updatedAt: Date;
   
-  @ManyToOne(() => ExpenseGroup, group => group.members)
+  @ManyToOne(() => ExpenseGroup, group => group.members, { onDelete: 'CASCADE' })
   group: ExpenseGroup;
 
   @ManyToOne(() => User, user => user.id)
