@@ -1,5 +1,5 @@
 import { User } from "../../../modules/users/entities/user.entity";
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { Expense } from "./expense.entity";
 
 @Entity()
@@ -10,15 +10,21 @@ export class ExpenseContributor {
   @Column()
   expenseId: string;
 
-  @ManyToOne(() => Expense, expense => expense.contributors)
-  expense: Expense;
-
   @Column()
   userId: string;
 
+  @Column('decimal', { precision: 10, scale: 2 })
+  amountPaid: number;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+  
   @ManyToOne(() => User, user => user.id)
   user: User;
 
-  @Column('decimal', { precision: 10, scale: 2 })
-  amountPaid: number;
+  @ManyToOne(() => Expense, expense => expense.contributors)
+  expense: Expense;
 }

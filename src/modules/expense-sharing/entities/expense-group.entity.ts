@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { ExpenseGroupMember } from "./expense-group-member.entity";
 import { Expense } from "./expense.entity";
 
@@ -10,12 +10,18 @@ export class ExpenseGroup {
     @Column()
     name: string;
 
+    @Column({ default: 'active' })
+    status: string;
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
+
     @OneToMany(() => ExpenseGroupMember, egm => egm.group)
     members: ExpenseGroupMember[];
 
     @OneToMany(() => Expense, e => e.group)
     expenses: Expense[];
-
-    @Column({ default: 'active' })
-    status: string;
 }
