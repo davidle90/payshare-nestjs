@@ -1,3 +1,5 @@
+import { ExpenseGroupMemberResponseDto } from "./expense-group-member-response-dto";
+
 export class ExpenseGroupResponseDto {
   id: string;
   referenceId: string;
@@ -10,7 +12,8 @@ export class ExpenseGroupResponseDto {
   createdAt: Date;
   updatedAt: Date;
 
-  members?: any[];
+  members?: ExpenseGroupMemberResponseDto[];
+
   expenses?: any[];
   debts?: any[];
 }

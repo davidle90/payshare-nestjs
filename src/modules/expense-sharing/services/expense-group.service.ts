@@ -21,8 +21,19 @@ export class ExpenseGroupService {
         @InjectRepository(ExpenseDebt) private readonly debtRepository: Repository<ExpenseDebt>,
     ) {}
 
-    async findAll({ search }: { search?: string }) {
+    async findAll({ search, includes }: { search?: string, includes?: string[] }) {
         const qb = this.groupRepository.createQueryBuilder('expenseGroup');
+
+        if (includes?.includes('members')) {
+            qb.leftJoinAndSelect('expenseGroup.members', 'members');
+            qb.leftJoinAndSelect('members.user', 'user');
+        }
+        if (includes?.includes('expenses')) {
+            qb.leftJoinAndSelect('expenseGroup.expenses', 'expenses');
+        }
+        if (includes?.includes('debts')) {
+            qb.leftJoinAndSelect('expenseGroup.debts', 'debts');
+        }
 
         if (search?.trim()) {
             qb.andWhere(
@@ -36,8 +47,23 @@ export class ExpenseGroupService {
         return qb.getMany();
     }
 
-    async findOne(referenceId: string) {
-        return await this.groupRepository.findOneBy({ referenceId });
+    async findOne(referenceId: string, includes: string[] = []) {
+        const qb = this.groupRepository.createQueryBuilder('expenseGroup');
+
+        qb.where('expenseGroup.referenceId = :referenceId', { referenceId })
+
+        if (includes.includes('members')) {
+            qb.leftJoinAndSelect('expenseGroup.members', 'members');
+            qb.leftJoinAndSelect('members.user', 'user');
+        }
+        if (includes.includes('expenses')) {
+            qb.leftJoinAndSelect('expenseGroup.expenses', 'expenses');
+        }
+        if (includes.includes('debts')) {
+            qb.leftJoinAndSelect('expenseGroup.debts', 'debts');
+        }
+
+        return await qb.getOne();
     }
 
     async create(input: CreateExpenseGroupDto) {

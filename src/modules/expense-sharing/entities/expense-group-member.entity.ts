@@ -8,7 +8,7 @@ export class ExpenseGroupMember {
   id: string;
 
   @Column({ default: 'member' })
-  role: string; // 'admin' or 'member'
+  role: string; // 'owner' or 'member'
 
   @CreateDateColumn()
   createdAt: Date;

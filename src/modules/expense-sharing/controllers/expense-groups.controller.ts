@@ -17,11 +17,13 @@ export class ExpenseGroupsController {
     ) {}
 
     @Get()
-    async findAll(@Query('search') search?: string,) {
-        const groups = await this.groupService.findAll({ search });
+    async findAll(@Query('search') search?: string, @Query('includes') includes?: string) {
+        const includesArray = includes ? includes.split(',') : [];
+
+        const groups = await this.groupService.findAll({ search, includes: includesArray });
 
         return {
-            data: ExpenseGroupMapper.toResponseList(groups),
+            data: ExpenseGroupMapper.toResponseList(groups, includesArray),
             meta: {
                 count: groups.length
             }
@@ -29,15 +31,16 @@ export class ExpenseGroupsController {
     }
 
     @Get(':id')
-    async findOne(@Param('id') id: string) {
-        const group = await this.groupService.findOne(id);
+    async findOne(@Param('id') id: string, @Query('includes') includes?: string) {
+        const includesArray = includes ? includes.split(',') : [];
+        const group = await this.groupService.findOne(id, includesArray);
 
         if(!group) {
             throw new HttpException('Group not found', HttpStatus.NOT_FOUND)
         }
 
         return {
-            data: ExpenseGroupMapper.toResponse(group),
+            data: ExpenseGroupMapper.toResponse(group, includesArray),
         };
     }
 
