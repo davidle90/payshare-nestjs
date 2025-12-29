@@ -20,7 +20,6 @@ export class ExpenseParticipantsController {
     @Get()
     async findAll(@Param('expenseId') expenseId) {
         const participants = await this.participantService.findAll(expenseId);
-
         return { data: ExpenseParticipantMapper.toResponseList(participants) };
     }
 
@@ -28,7 +27,6 @@ export class ExpenseParticipantsController {
     async findOne(@Param('id') id: string) {
         const participant = await this.participantService.findOne(id);
         if (!participant) throw new HttpException('Participant not found', HttpStatus.NOT_FOUND);
-
         return { data: ExpenseParticipantMapper.toResponse(participant) };
     }
 

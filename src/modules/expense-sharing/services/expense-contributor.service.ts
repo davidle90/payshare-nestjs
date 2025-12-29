@@ -13,9 +13,17 @@ export class ExpenseContributorService {
         private readonly memberService: ExpenseGroupMemberService,
     ) {}
 
-    async findAll(){}
+    async findAll(expenseId: string){
+        const contributors = await this.contributorRepository.find({
+            where: { expense: { referenceId: expenseId }}
+        });
 
-    async findOne(){}
+        return contributors;
+    }
+
+    async findOne(id: string){
+        return await this.contributorRepository.findOneBy({ id });
+    }
 
     async create(expenseId: string, input: CreateExpenseContributorDto) {
         const member = await this.memberService.findOne(input.memberId);
@@ -35,7 +43,7 @@ export class ExpenseContributorService {
     }
 
     async update(contributorId: string, expenseId: string, input: UpdateExpenseContributorDto) {
-        this.contributorRepository.update(
+        await this.contributorRepository.update(
             contributorId,
             {
                 ...input,
@@ -43,10 +51,10 @@ export class ExpenseContributorService {
             }
         );
 
-        const updatedParticipant = this.contributorRepository.findOneBy({ id: contributorId });
-        if(!updatedParticipant) throw new HttpException('Updated participant not found', HttpStatus.NOT_FOUND)
+        const updatedContributor = await this.contributorRepository.findOneBy({ id: contributorId });
+        if(!updatedContributor) throw new HttpException('Updated contributor not found', HttpStatus.NOT_FOUND)
 
-        return updatedParticipant;
+        return updatedContributor;
     }
 
     async delete(id: string) {
