@@ -36,12 +36,13 @@ export class ExpenseService {
         return await this.expenseRepository.save(expense);
     }
 
-    async update(referenceId: string, input: UpdateExpenseDto) {
-        return await this.expenseRepository.update(referenceId, input);
+    async update(id: string, input: UpdateExpenseDto) {
+        await this.expenseRepository.update(id, input)
+        return this.expenseRepository.findOneBy({ id });
     }
 
-    async delete(referenceId: string) {
-        return await this.expenseRepository.delete(referenceId);
+    async delete(id: string) {
+        return await this.expenseRepository.delete(id);
     }
 }
 
