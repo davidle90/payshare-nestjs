@@ -21,11 +21,12 @@ export class ExpenseGroupService {
         @InjectRepository(ExpenseDebt) private readonly debtRepository: Repository<ExpenseDebt>,
     ) {}
 
-    async findAll({ search, includes }: { search?: string, includes?: string[] }) {
-        const qb = this.groupRepository.createQueryBuilder('expenseGroup');
+    async findAll({ userId, search, includes }: { userId: string, search?: string, includes?: string[] }) {
+        const qb = this.groupRepository.createQueryBuilder('expenseGroup')
+            .leftJoinAndSelect('expenseGroup.members', 'members')
+            .where('members.user.id = :userId', { userId });
 
         if (includes?.includes('members')) {
-            qb.leftJoinAndSelect('expenseGroup.members', 'members');
             qb.leftJoinAndSelect('members.user', 'user');
         }
         if (includes?.includes('expenses')) {

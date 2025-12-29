@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../../modules/users/entities/user.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { UpdateExpenseGroupMemberDto } from '../dto/update-expense-group-member-dto';
 import { ExpenseGroupMember } from '../entities/expense-group-member.entity';
 import { ExpenseGroup } from '../entities/expense-group.entity';
@@ -16,23 +16,32 @@ export class ExpenseGroupMemberService {
         private readonly expenseGroupService: ExpenseGroupService
     ) {}
 
-    async addMember(groupId: string, userId: string, role: string = 'member') {
-        const userExists = await this.userRepository.findOneBy({ id: userId });
-
-        if (!userExists) {
-            throw new NotFoundException('User not found');
-        }
-
-        const member = this.memberRepository.create( {
-            group: { id: groupId },
-            user: { id: userId },
-            role
+    async findAll(groupId: string) {
+        return await this.memberRepository.find({
+            where: { group: { id: groupId } },
+            relations: ['user', 'group']
         });
-
-        return await this.memberRepository.save(member);
     }
 
-    async removeMember(groupId: string, userId: string) {
+    async addMember(referenceId: string, userId: string, role: 'owner' | 'admin' | 'member' = 'member') {
+        const user = await this.userRepository.findOneBy({ id: userId });
+        if (!user) throw new NotFoundException('User not found');
+
+        const group = await this.groupRepository.findOneBy({ referenceId });
+        if (!group) throw new NotFoundException('Group not found');
+
+        const existing = await this.memberRepository.findOne({
+            where: { group: { id: group.id }, user: { id: user.id } },
+        });
+        if (existing) throw new BadRequestException('User is already a member');
+
+        const member = this.memberRepository.create({ group, user, role });
+
+        await this.memberRepository.save(member)
+        return member;
+    }
+
+    async removeMember(groupId: string, memberId: string) {
         const group = await this.groupRepository.findOne({
             where: { id: groupId },
             relations: [
@@ -45,10 +54,13 @@ export class ExpenseGroupMemberService {
         if (!group) throw new NotFoundException('Group not found');
 
         const member = await this.memberRepository.findOne({
-            where: { group: { id: groupId }, user: { id: userId } },
+            where: { group: { id: groupId }, id: memberId },
+            relations: ['user'],
         });
 
         if (!member) throw new NotFoundException('Member not found');
+
+        const userId = member.user.id;
 
         await this.groupRepository.manager.transaction(async manager => {
             await manager.remove(member);
@@ -56,15 +68,15 @@ export class ExpenseGroupMemberService {
             await manager
                 .createQueryBuilder()
                 .delete()
-                .from('expense_participant')
-                .where(`memberId = :userId AND expenseId IN (SELECT id FROM expense WHERE groupId = :groupId)`, { userId, groupId })
+                .from('expense_participant') // table name
+                .where(`"memberId" = :userId AND "expenseId" IN (SELECT "id" FROM "expense" WHERE "groupId" = :groupId)`, { userId, groupId })
                 .execute();
 
             await manager
                 .createQueryBuilder()
                 .delete()
                 .from('expense_contributor')
-                .where(`memberId = :userId AND expenseId IN (SELECT id FROM expense WHERE groupId = :groupId)`, { userId, groupId })
+                .where(`"memberId" = :userId AND "expenseId" IN (SELECT "id" FROM "expense" WHERE "groupId" = :groupId)`, { userId, groupId })
                 .execute();
 
             await manager
@@ -87,12 +99,23 @@ export class ExpenseGroupMemberService {
         }
 
         await this.memberRepository.update(member.id, input);
-        const updatedMember = await this.memberRepository.findOneBy({ id: member.id });
+        const updatedMember = await this.memberRepository.findOne({
+            where: { id: member.id },
+            relations: ['user', 'group'],
+        });
 
         return updatedMember;
     }
 
     async inviteUserToGroup(userId: string, groupId: string) {
         return await `${userId} has been invited to join the group "${groupId}".`
+    }
+
+    async isAdmin(group, userId) {
+        const admin = await this.memberRepository.find({
+            where: { group, user: { id: userId }, role: In(['admin', 'owner']) }
+        });
+
+        return !!admin;
     }
 }

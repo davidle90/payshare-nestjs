@@ -9,6 +9,7 @@ import { User } from 'src/common/decorators/user.decorator';
 import { UsersService } from 'src/modules/users/users.service';
 
 @Controller('expense-groups')
+@UseGuards(AuthGuard('jwt'))
 export class ExpenseGroupsController {
     constructor(
         private groupService: ExpenseGroupService,
@@ -17,10 +18,13 @@ export class ExpenseGroupsController {
     ) {}
 
     @Get()
-    async findAll(@Query('search') search?: string, @Query('includes') includes?: string) {
+    async findAll(@User('userId') userId: string, @Query('search') search?: string, @Query('includes') includes?: string) {
+
+        //todo: add permission to get all;
+
         const includesArray = includes ? includes.split(',') : [];
 
-        const groups = await this.groupService.findAll({ search, includes: includesArray });
+        const groups = await this.groupService.findAll({ userId, search, includes: includesArray });
 
         return {
             data: ExpenseGroupMapper.toResponseList(groups, includesArray),
@@ -45,7 +49,6 @@ export class ExpenseGroupsController {
     }
 
     @Post()
-    @UseGuards(AuthGuard('jwt'))
     async create(
         @Body(ValidationPipe) input: CreateExpenseGroupDto,
         @User('userId') userId: string
@@ -58,7 +61,7 @@ export class ExpenseGroupsController {
 
         const group = await this.groupService.create(input);
 
-        await this.memberService.addMember(group.id, user.id, 'owner');
+        await this.memberService.addMember(group.referenceId, user.id, 'owner');
 
         return {
             data: ExpenseGroupMapper.toResponse(group),

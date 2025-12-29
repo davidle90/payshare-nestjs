@@ -7,8 +7,12 @@ export class ExpenseGroupMember {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ default: 'member' })
-  role: string; // 'owner' or 'member'
+  @Column({
+    type: 'enum',
+    enum: ['owner', 'admin', 'member'],
+    default: 'member'
+  })
+  role: 'owner' | 'admin' | 'member';
 
   @CreateDateColumn()
   createdAt: Date;

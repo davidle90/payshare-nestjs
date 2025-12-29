@@ -7,7 +7,7 @@ export class ExpenseGroupMemberMapper {
     return {
       id: member.id,
       role: member.role,
-      user: UserMapper.toResponse(member.user),
+      user: member.user ? UserMapper.toResponse(member.user) : null,
       createdAt: member.createdAt,
       updatedAt: member.updatedAt,
     };
