@@ -16,6 +16,8 @@ import { ExpenseParticipant } from './entities/expense-participant.entity';
 import { Expense } from './entities/expense.entity';
 import { User } from '../users/entities/user.entity';
 import { UsersModule } from '../users/users.module';
+import { ExpenseParticipantsController } from './controllers/expense-participants.controller';
+import { ExpenseContributorsController } from './controllers/expense-contributors.controller';
 
 @Module({
   imports: [
@@ -40,7 +42,9 @@ import { UsersModule } from '../users/users.module';
   controllers: [
     ExpensesController,
     ExpenseGroupsController,
-    ExpenseGroupMembersController
+    ExpenseGroupMembersController,
+    ExpenseParticipantsController,
+    ExpenseContributorsController
   ],
 })
 export class ExpenseSharingModule {}

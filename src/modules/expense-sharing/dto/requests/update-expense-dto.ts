@@ -1,4 +1,4 @@
-import { IsBoolean, IsDecimal, IsString } from "class-validator";
+import { IsBoolean, IsDecimal, IsOptional, IsString } from "class-validator";
 
 export class UpdateExpenseDto {
     @IsString()
@@ -17,5 +17,6 @@ export class UpdateExpenseDto {
     isSettled: boolean;
 
     @IsString()
-    editedByUserId: string;
+    @IsOptional()
+    editedByUserId?: string;
 }

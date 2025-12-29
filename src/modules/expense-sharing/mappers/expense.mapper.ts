@@ -1,5 +1,8 @@
 import { ExpenseResponseDto } from "../dto/responses/expense-response-dto";
 import { Expense } from "../entities/expense.entity";
+import { ExpenseContributorMapper } from "./expense-contributor.mapper";
+import { ExpenseGroupMapper } from "./expense-group.mapper";
+import { ExpenseParticipantMapper } from "./expense-participant.mapper";
 
 export class ExpenseMapper {
   static toResponse(expense: Expense, includes: string[] = []): ExpenseResponseDto {
@@ -19,15 +22,15 @@ export class ExpenseMapper {
     };
 
     if (includes.includes('group') && expense.group) {
-      response.group = expense.group;
+      response.group = ExpenseGroupMapper.toResponse(expense.group);
     }
 
     if (includes.includes('participants') && expense.participants) {
-      response.participants = expense.participants;
+      response.participants = ExpenseParticipantMapper.toResponseList(expense.participants);
     }
 
     if (includes.includes('contributors') && expense.contributors) {
-      response.contributors = expense.contributors;
+      response.contributors = ExpenseContributorMapper.toResponseList(expense.contributors);
     }
 
     return response;

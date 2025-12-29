@@ -1,12 +1,9 @@
 import { IsDecimal, IsString } from "class-validator";
 
-export class ExpenseContributorDto {
-    @IsString()
-    expenseId: string;
-
+export class CreateExpenseParticipantDto {
     @IsString()
     memberId: string;
 
     @IsDecimal()
-    amountPaid: number;
+    amountOwed: number;
 }

@@ -23,6 +23,13 @@ export class ExpenseGroupMemberService {
         });
     }
 
+    async findOne(id: string) {
+        return await this.memberRepository.findOne({
+            where: { id },
+            relations: ['user', 'group']
+        });
+    }
+
     async addMember(referenceId: string, userId: string, role: 'owner' | 'admin' | 'member' = 'member') {
         const user = await this.userRepository.findOneBy({ id: userId });
         if (!user) throw new NotFoundException('User not found');
@@ -117,5 +124,19 @@ export class ExpenseGroupMemberService {
         });
 
         return !!admin;
+    }
+
+    async isMember(group, userId) {
+        const member = await this.memberRepository.find({
+            where: { group, user: { id: userId } }
+        });
+
+        return !!member;
+    }
+
+    async getMemberByUserId(groupId: string, userId: string): Promise<ExpenseGroupMember | null> {
+        return this.memberRepository.findOne({
+            where: { group: { referenceId: groupId }, user: { id: userId } },
+        });
     }
 }

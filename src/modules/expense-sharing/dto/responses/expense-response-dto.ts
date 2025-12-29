@@ -1,5 +1,7 @@
-import { User } from "src/modules/users/entities/user.entity";
-import { ExpenseGroup } from "../../entities/expense-group.entity";
+import { ExpenseGroupResponseDto } from "./expense-group-response-dto";
+import { UserResponseDto } from "src/modules/users/dto/user-response-dto";
+import { ExpenseParticipantResponseDto } from "./expense-participant-response-dto";
+import { ExpenseContributorResponseDto } from "./expense-contributor-response-dto";
 
 export class ExpenseResponseDto {
   id: string;
@@ -17,8 +19,8 @@ export class ExpenseResponseDto {
   createdAt: Date;
   updatedAt: Date;
 
-  createdByUser?: User;
-  group?: ExpenseGroup;
-  contributors?: any[];
-  participants?: any[];
+  createdByUser?: UserResponseDto;
+  group?: ExpenseGroupResponseDto;
+  contributors?: ExpenseContributorResponseDto[];
+  participants?: ExpenseParticipantResponseDto[];
 }

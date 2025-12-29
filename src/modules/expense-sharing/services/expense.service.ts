@@ -8,15 +8,53 @@ import { Expense } from '../entities/expense.entity';
 @Injectable()
 export class ExpenseService {
     constructor(
-        @InjectRepository(Expense) private readonly expenseRepository: Repository<Expense>
+        @InjectRepository(Expense) private readonly expenseRepository: Repository<Expense>,
     ) {}
 
-    async findAll() {
-        return await this.expenseRepository.find();
+    async findAll({ groupId, search, includes }: { groupId?: string, search?: string, includes?: string[] }) {
+        const qb = this.expenseRepository.createQueryBuilder('expense')
+            .leftJoinAndSelect('expense.group', 'group');
+
+        if (includes?.includes('participants')) {
+            qb.leftJoinAndSelect('expense.participants', 'participants');
+        }
+
+        if (includes?.includes('contributors')) {
+            qb.leftJoinAndSelect('expense.contributors', 'contributors');
+        }
+
+        if(groupId) {
+            qb.andWhere('group.referenceId = :groupId', { groupId });
+        }
+
+        if (search?.trim()) {
+            qb.andWhere(
+                '(expense.name ILIKE :search OR expense.referenceId ILIKE :search)',
+                { search: `%${search.trim()}%` },
+            );
+        }
+
+        qb.orderBy('expense.createdAt', 'DESC');
+
+        return qb.getMany();
     }
 
-    async findOne(referenceId: string) {
-        return await this.expenseRepository.findOneBy({ referenceId });
+    async findOne(referenceId: string, includes: string[] = []) {
+        const qb = this.expenseRepository.createQueryBuilder('expense');
+
+        qb.where('expense.referenceId = :referenceId', { referenceId })
+
+        if (includes.includes('group')) {
+            qb.leftJoinAndSelect('expense.group', 'group');
+        }
+        if (includes.includes('participants')) {
+            qb.leftJoinAndSelect('expense.participants', 'participants');
+        }
+        if (includes.includes('contributors')) {
+            qb.leftJoinAndSelect('expense.contributors', 'contributors');
+        }
+
+        return await qb.getOne();
     }
 
     async create(input: CreateExpenseDto) {
