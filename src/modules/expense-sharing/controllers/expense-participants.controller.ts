@@ -1,31 +1,35 @@
 import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { ExpenseService } from '../services/expense.service';
-import { ExpenseGroupService } from '../services/expense-group.service';
 import { ExpenseGroupMemberService } from '../services/expense-group-member.service';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from 'src/common/decorators/user.decorator';
 import { ExpenseParticipantService } from '../services/expense-participant.service';
 import { CreateExpenseParticipantDto } from '../dto/requests/create-expense-participant-dto';
 import { ExpenseParticipantMapper } from '../mappers/expense-participant.mapper';
+import { UpdateExpenseParticipantDto } from '../dto/requests/update-expense-participant-dto';
 
 @Controller('expenses/:expenseId/participants')
 @UseGuards(AuthGuard('jwt'))
 export class ExpenseParticipantsController {
     constructor(
         private readonly expenseService: ExpenseService,
-        private readonly groupService: ExpenseGroupService,
         private readonly memberService: ExpenseGroupMemberService,
         private readonly participantService: ExpenseParticipantService,
     ) {}
 
     @Get()
-    async findAll() {
-        return 'participants'
+    async findAll(@Param('expenseId') expenseId) {
+        const participants = await this.participantService.findAll(expenseId);
+
+        return { data: ExpenseParticipantMapper.toResponseList(participants) };
     }
 
     @Get(':id')
-    async findOne() {
-        return 'participant'
+    async findOne(@Param('id') id: string) {
+        const participant = await this.participantService.findOne(id);
+        if (!participant) throw new HttpException('Participant not found', HttpStatus.NOT_FOUND);
+
+        return { data: ExpenseParticipantMapper.toResponse(participant) };
     }
 
     @Post()
@@ -36,9 +40,9 @@ export class ExpenseParticipantsController {
     ) {
         const expense = await this.expenseService.findOne(expenseId);
         if (!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND);
+        if (!expense.group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
 
-        const group = await this.groupService.findOne(expense.groupId);
-        const isAdmin = await this.memberService.isAdmin(group, userId);
+        const isAdmin = await this.memberService.isAdmin(expense.group, userId);
         if (!isAdmin) {
             throw new HttpException('You are not authorized to add participants', HttpStatus.UNAUTHORIZED);
         }
@@ -49,12 +53,41 @@ export class ExpenseParticipantsController {
     }
 
     @Put(':id')
-    async update() {
-        return 'update participant'
+    async update(
+        @Param('id') id: string,
+        @Param('expenseId') expenseId: string,
+        @Body() input: UpdateExpenseParticipantDto,
+        @User('userId') userId: string,
+    ) {
+        const expense = await this.expenseService.findOne(expenseId);
+        if (!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND);
+        if (!expense.group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
+
+        const isAdmin = await this.memberService.isAdmin(expense.group, userId);
+        if (!isAdmin) throw new HttpException('You are not authorized to update participants', HttpStatus.UNAUTHORIZED);
+
+        const participant = await this.participantService.update(id, expense.id, input);
+        if (!participant) throw new HttpException('Updated participant not found', HttpStatus.NOT_FOUND);
+
+        return { data: ExpenseParticipantMapper.toResponse(participant) };
     }
 
     @Delete(':id')
-    async delete() {
-        return 'delete participant'
+    async delete(
+        @Param('id') id: string,
+        @Param('expenseId') expenseId: string,
+        @User('userId') userId: string,
+    ) {
+        const expense = await this.expenseService.findOne(expenseId);
+        if (!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND);
+        if (!expense.group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
+
+        const isAdmin = await this.memberService.isAdmin(expense.group, userId);
+        if (!isAdmin) throw new HttpException('You are not authorized to delete participants', HttpStatus.UNAUTHORIZED);
+
+        const participant = await this.participantService.findOne(id);
+        if (!participant) throw new HttpException('Participant not found', HttpStatus.NOT_FOUND);
+
+        await this.participantService.delete(participant.id);
     }
 }

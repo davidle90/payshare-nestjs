@@ -36,9 +36,9 @@ export class ExpenseContributorsController {
     ) {
         const expense = await this.expenseService.findOne(expenseId);
         if (!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND);
+        if (!expense.group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
 
-        const group = await this.groupService.findOne(expense.groupId);
-        const isAdmin = await this.memberService.isAdmin(group, userId);
+        const isAdmin = await this.memberService.isAdmin(expense.group, userId);
         if (!isAdmin) {
             throw new HttpException('You are not authorized to add participants', HttpStatus.UNAUTHORIZED);
         }

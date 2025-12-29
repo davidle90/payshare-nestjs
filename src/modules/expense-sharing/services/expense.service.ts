@@ -43,10 +43,8 @@ export class ExpenseService {
         const qb = this.expenseRepository.createQueryBuilder('expense');
 
         qb.where('expense.referenceId = :referenceId', { referenceId })
+            .leftJoinAndSelect('expense.group', 'group')
 
-        if (includes.includes('group')) {
-            qb.leftJoinAndSelect('expense.group', 'group');
-        }
         if (includes.includes('participants')) {
             qb.leftJoinAndSelect('expense.participants', 'participants');
         }

@@ -118,25 +118,26 @@ export class ExpenseGroupMemberService {
         return await `${userId} has been invited to join the group "${groupId}".`
     }
 
-    async isAdmin(group, userId) {
-        const admin = await this.memberRepository.find({
-            where: { group, user: { id: userId }, role: In(['admin', 'owner']) }
+    async isAdmin(group: ExpenseGroup, userId: string) {
+        const isAdmin = await this.memberRepository.exists({
+            where: { group: { id: group.id }, user: { id: userId }, role: In(['admin', 'owner']) }
         });
 
-        return !!admin;
+        return isAdmin;
     }
 
-    async isMember(group, userId) {
-        const member = await this.memberRepository.find({
-            where: { group, user: { id: userId } }
+    async isMember(group: ExpenseGroup, userId: string) {
+        const isMember = await this.memberRepository.exists({
+            where: { group: { id: group.id }, user: { id: userId } }
         });
 
-        return !!member;
+        return isMember;
     }
 
     async getMemberByUserId(groupId: string, userId: string): Promise<ExpenseGroupMember | null> {
-        return this.memberRepository.findOne({
+        return await this.memberRepository.findOne({
             where: { group: { referenceId: groupId }, user: { id: userId } },
+            relations: ['user', 'group'],
         });
     }
 }
