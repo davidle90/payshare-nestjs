@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateExpenseDto } from '../dto/create-expense-dto';
-import { UpdateExpenseDto } from '../dto/update-expense-dto';
+import { CreateExpenseDto } from '../dto/requests/create-expense-dto';
+import { UpdateExpenseDto } from '../dto/requests/update-expense-dto';
 import { Expense } from '../entities/expense.entity';
 
 @Injectable()

@@ -1,5 +1,5 @@
 import { UserMapper } from 'src/modules/users/mappers/user.mapper';
-import { ExpenseGroupMemberResponseDto } from '../dto/expense-group-member-response-dto';
+import { ExpenseGroupMemberResponseDto } from '../dto/responses/expense-group-member-response-dto';
 import { ExpenseGroupMember } from '../entities/expense-group-member.entity';
 
 export class ExpenseGroupMemberMapper {

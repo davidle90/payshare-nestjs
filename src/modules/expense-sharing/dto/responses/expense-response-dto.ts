@@ -1,15 +1,16 @@
 import { User } from "src/modules/users/entities/user.entity";
-import { ExpenseGroup } from "../entities/expense-group.entity";
+import { ExpenseGroup } from "../../entities/expense-group.entity";
 
 export class ExpenseResponseDto {
   id: string;
+  referenceId: string;
   groupId: string;
-  name: string;
 
+  name: string;
   description: string;
   currency: string;
   totalAmount: number;
-
+  
   isSettled: boolean;
   editedByUserId: string | null | undefined;
 

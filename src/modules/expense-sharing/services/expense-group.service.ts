@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateExpenseGroupDto } from '../dto/create-expense-group-dto';
+import { CreateExpenseGroupDto } from '../dto/requests/create-expense-group-dto';
 import { ExpenseGroup } from '../entities/expense-group.entity';
-import { UpdateExpenseGroupDto } from '../dto/update-expense-group-dto';
+import { UpdateExpenseGroupDto } from '../dto/requests/update-expense-group-dto';
 import { ExpenseDebt } from '../entities/expense-debt.entity';
 
 type BalanceMap = Record<string, Record<string, number>>;

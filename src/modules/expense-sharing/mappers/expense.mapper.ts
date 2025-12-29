@@ -1,10 +1,11 @@
-import { ExpenseResponseDto } from "../dto/expense-response-dto";
+import { ExpenseResponseDto } from "../dto/responses/expense-response-dto";
 import { Expense } from "../entities/expense.entity";
 
 export class ExpenseMapper {
   static toResponse(expense: Expense, includes: string[] = []): ExpenseResponseDto {
     const response: ExpenseResponseDto = {
       id: expense.id,
+      referenceId: expense.referenceId,
       groupId: expense.groupId,
       name: expense.name,
       description: expense.description,

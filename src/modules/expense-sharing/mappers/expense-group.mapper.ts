@@ -1,5 +1,5 @@
 import { ExpenseGroup } from '../entities/expense-group.entity';
-import { ExpenseGroupResponseDto } from '../dto/expense-group-response-dto';
+import { ExpenseGroupResponseDto } from '../dto/responses/expense-group-response-dto';
 import { ExpenseGroupMemberMapper } from './expense-group-member.mapper';
 
 export class ExpenseGroupMapper {

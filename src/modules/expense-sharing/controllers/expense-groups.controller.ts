@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, Query, UseGuards, ValidationPipe } from '@nestjs/common';
 import { ExpenseGroupService } from '../services/expense-group.service';
-import { CreateExpenseGroupDto } from '../dto/create-expense-group-dto';
-import { UpdateExpenseGroupDto } from '../dto/update-expense-group-dto';
+import { CreateExpenseGroupDto } from '../dto/requests/create-expense-group-dto';
+import { UpdateExpenseGroupDto } from '../dto/requests/update-expense-group-dto';
 import { ExpenseGroupMapper } from '../mappers/expense-group.mapper';
 import { ExpenseGroupMemberService } from '../services/expense-group-member.service';
 import { AuthGuard } from '@nestjs/passport';

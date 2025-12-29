@@ -2,8 +2,8 @@ import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Patch,
 import { AuthGuard } from '@nestjs/passport';
 import { ExpenseGroupMemberService } from '../services/expense-group-member.service';
 import { ExpenseGroupMemberMapper } from '../mappers/expense-group-member.mapper';
-import { UpdateExpenseGroupMemberDto } from '../dto/update-expense-group-member-dto';
-import { CreateExpenseGroupMemberDto } from '../dto/create-expense-group-member-dto';
+import { UpdateExpenseGroupMemberDto } from '../dto/requests/update-expense-group-member-dto';
+import { CreateExpenseGroupMemberDto } from '../dto/requests/create-expense-group-member-dto';
 import { ExpenseGroupService } from '../services/expense-group.service';
 
 @Controller('expense-groups/:groupId/members')

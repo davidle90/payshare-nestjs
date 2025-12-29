@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../../modules/users/entities/user.entity';
 import { In, Repository } from 'typeorm';
-import { UpdateExpenseGroupMemberDto } from '../dto/update-expense-group-member-dto';
+import { UpdateExpenseGroupMemberDto } from '../dto/requests/update-expense-group-member-dto';
 import { ExpenseGroupMember } from '../entities/expense-group-member.entity';
 import { ExpenseGroup } from '../entities/expense-group.entity';
 import { ExpenseGroupService } from './expense-group.service';

@@ -17,5 +17,5 @@ export class UpdateExpenseDto {
     isSettled: boolean;
 
     @IsString()
-    editedById: string;
+    editedByUserId: string;
 }
