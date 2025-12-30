@@ -207,6 +207,10 @@ export class ExpenseGroupService {
     }
 
     async simplifyBalance(groupId: string): Promise<Transaction[]> {
+
+        //todo: fix
+        console.log('todo: simplifyBalance')
+
         const group = await this.groupRepository.findOne({
             where: { id: groupId },
             relations: ['expenses'],
