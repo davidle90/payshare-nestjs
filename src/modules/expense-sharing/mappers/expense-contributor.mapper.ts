@@ -4,6 +4,7 @@ import { ExpenseContributor } from "../entities/expense-contributor.entity";
 export class ExpenseContributorMapper {
   static toResponse(contributor: ExpenseContributor): ExpenseContributorResponseDto {
     const response: ExpenseContributorResponseDto = {
+      object: 'expense_contributor',
       id: contributor.id,
       expenseId: contributor.expenseId,
       userId: contributor.userId,

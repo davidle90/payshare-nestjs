@@ -3,6 +3,7 @@ import { ExpenseResponseDto } from "./expense-response-dto";
 import { UserResponseDto } from "src/modules/users/dto/user-response-dto";
 
 export class ExpenseContributorResponseDto {
+  object: 'expense_contributor';
   id: string;
   expenseId: string;
   userId: string;

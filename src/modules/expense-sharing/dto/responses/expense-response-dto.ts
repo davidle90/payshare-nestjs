@@ -4,6 +4,7 @@ import { ExpenseParticipantResponseDto } from "./expense-participant-response-dt
 import { ExpenseContributorResponseDto } from "./expense-contributor-response-dto";
 
 export class ExpenseResponseDto {
+  object: 'expense';
   id: string;
   referenceId: string;
   groupId: string;

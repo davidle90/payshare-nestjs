@@ -7,6 +7,7 @@ import { ExpenseParticipantMapper } from "./expense-participant.mapper";
 export class ExpenseMapper {
   static toResponse(expense: Expense, includes: string[] = []): ExpenseResponseDto {
     const response: ExpenseResponseDto = {
+      object: 'expense',
       id: expense.id,
       referenceId: expense.referenceId,
       groupId: expense.groupId,

@@ -5,6 +5,7 @@ import { ExpenseGroupMemberMapper } from './expense-group-member.mapper';
 export class ExpenseGroupMapper {
   static toResponse(group: ExpenseGroup, includes: string[] = []): ExpenseGroupResponseDto {
     const response: ExpenseGroupResponseDto = {
+      object: 'expense_group',
       id: group.id,
       referenceId: group.referenceId,
       name: group.name,
