@@ -22,16 +22,31 @@ export class ExpenseGroupService {
     ) {}
 
     async findAll({ userId, search, includes }: { userId: string, search?: string, includes?: string[] }) {
-        const qb = this.groupRepository.createQueryBuilder('expenseGroup')
-            .leftJoinAndSelect('expenseGroup.members', 'members')
-            .where('members.user.id = :userId', { userId });
+        const qb = this.groupRepository
+            .createQueryBuilder('expenseGroup')
+            .where(qb => {
+                const subQuery = qb
+                .subQuery()
+                .select('1')
+                .from('expense_group_member', 'm')
+                .where('m.groupId = expenseGroup.id')
+                .andWhere('m.userId = :userId')
+                .getQuery();
+
+                return `EXISTS ${subQuery}`;
+            })
+            .setParameter('userId', userId);
+
+        qb.leftJoinAndSelect('expenseGroup.members', 'members');
 
         if (includes?.includes('members')) {
-            qb.leftJoinAndSelect('members.user', 'user');
+        qb.leftJoinAndSelect('members.user', 'user');
         }
+
         if (includes?.includes('expenses')) {
             qb.leftJoinAndSelect('expenseGroup.expenses', 'expenses');
         }
+        
         if (includes?.includes('debts')) {
             qb.leftJoinAndSelect('expenseGroup.debts', 'debts');
         }

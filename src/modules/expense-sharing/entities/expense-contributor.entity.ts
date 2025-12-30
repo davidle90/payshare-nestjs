@@ -1,9 +1,10 @@
 import { User } from "../../../modules/users/entities/user.entity";
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, Index } from "typeorm";
 import { Expense } from "./expense.entity";
 import { ExpenseGroupMember } from "./expense-group-member.entity";
 
 @Entity()
+@Index(['expenseId', 'memberId'], { unique: true })
 export class ExpenseContributor {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -32,6 +33,6 @@ export class ExpenseContributor {
   @ManyToOne(() => ExpenseGroupMember, member => member.id)
   member: ExpenseGroupMember;
 
-  @ManyToOne(() => Expense, expense => expense.contributors)
+  @ManyToOne(() => Expense, expense => expense.contributors, { onDelete: 'CASCADE' })
   expense: Expense;
 }

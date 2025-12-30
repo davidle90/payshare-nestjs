@@ -46,9 +46,9 @@ export class Expense {
   @JoinColumn()
   createdByUser: User;
   
-  @OneToMany(() => ExpenseContributor, c => c.expense)
+  @OneToMany(() => ExpenseContributor, c => c.expense, { cascade: true })
   contributors: ExpenseContributor[];
 
-  @OneToMany(() => ExpenseParticipant, p => p.expense)
+  @OneToMany(() => ExpenseParticipant, p => p.expense, { cascade: true })
   participants: ExpenseParticipant[];
 }

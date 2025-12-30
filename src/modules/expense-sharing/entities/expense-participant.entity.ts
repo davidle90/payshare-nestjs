@@ -1,9 +1,10 @@
 import { User } from "../../../modules/users/entities/user.entity";
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, Index } from "typeorm";
 import { Expense } from "./expense.entity";
 import { ExpenseGroupMember } from "./expense-group-member.entity";
 
 @Entity()
+@Index(['expenseId', 'memberId'], { unique: true })
 export class ExpenseParticipant {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -26,7 +27,7 @@ export class ExpenseParticipant {
   @UpdateDateColumn()
   updatedAt: Date;
   
-  @ManyToOne(() => Expense, expense => expense.participants)
+  @ManyToOne(() => Expense, expense => expense.participants, { onDelete: 'CASCADE' })
   expense: Expense;
 
   @ManyToOne(() => ExpenseGroupMember, member => member.id)

@@ -4,11 +4,14 @@ import { Repository } from 'typeorm';
 import { CreateExpenseDto } from '../dto/requests/create-expense-dto';
 import { UpdateExpenseDto } from '../dto/requests/update-expense-dto';
 import { Expense } from '../entities/expense.entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EXPENSE_CHANGED_EVENT } from '../events/expense.events';
 
 @Injectable()
 export class ExpenseService {
     constructor(
         @InjectRepository(Expense) private readonly expenseRepository: Repository<Expense>,
+        private readonly eventEmitter: EventEmitter2,
     ) {}
 
     async findAll({ groupId, search, includes }: { groupId?: string, search?: string, includes?: string[] }) {
@@ -78,7 +81,13 @@ export class ExpenseService {
     }
 
     async delete(id: string) {
-        return await this.expenseRepository.delete(id);
+        await this.expenseRepository.delete(id);
+
+        this.eventEmitter.emit(EXPENSE_CHANGED_EVENT, {
+            expenseId: id,
+        });
+        
+        return { success: true };
     }
 
     async updateTotalAmount(expenseId: string) {
