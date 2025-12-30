@@ -5,6 +5,7 @@ import { CreateExpenseGroupDto } from '../dto/requests/create-expense-group-dto'
 import { ExpenseGroup } from '../entities/expense-group.entity';
 import { UpdateExpenseGroupDto } from '../dto/requests/update-expense-group-dto';
 import { ExpenseDebt } from '../entities/expense-debt.entity';
+import { ExpenseStatus } from '../entities/expense.entity';
 
 type BalanceMap = Record<string, Record<string, number>>;
 
@@ -122,7 +123,9 @@ export class ExpenseGroupService {
         let totalExpenses = 0;
 
         for (const expense of group.expenses) {
-            totalExpenses += Number(expense.totalAmount);
+            if (expense.status === ExpenseStatus.FINALIZED) {
+                totalExpenses += Number(expense.totalAmount);
+            }
         }
 
         await this.groupRepository.update(group.id, { totalExpenses });

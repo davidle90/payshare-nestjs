@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ExpenseContributor } from '../entities/expense-contributor.entity';
@@ -7,12 +7,15 @@ import { CreateExpenseContributorDto } from '../dto/requests/create-expense-cont
 import { ExpenseGroupMemberService } from './expense-group-member.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EXPENSE_CHANGED_EVENT } from '../events/expense.events';
+import { ExpenseService } from './expense.service';
+import { ExpenseStatus } from '../entities/expense.entity';
 
 @Injectable()
 export class ExpenseContributorService {
     constructor(
         @InjectRepository(ExpenseContributor) private readonly contributorRepository: Repository<ExpenseContributor>,
         private readonly memberService: ExpenseGroupMemberService,
+        private readonly expenseService: ExpenseService,
         private readonly eventEmitter: EventEmitter2,
     ) {}
 
@@ -29,6 +32,13 @@ export class ExpenseContributorService {
     }
 
     async create(expenseId: string, input: CreateExpenseContributorDto) {
+        const expense = await this.expenseService.findOne(expenseId);
+        if(!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND)
+
+        if (expense.status === ExpenseStatus.FINALIZED) {
+            throw new BadRequestException('Cannot modify a finalized expense');
+        }
+
         const member = await this.memberService.findOne(input.memberId);
         if(!member) throw new HttpException('Member not found', HttpStatus.NOT_FOUND)
 
@@ -50,6 +60,13 @@ export class ExpenseContributorService {
     }
 
     async update(contributorId: string, expenseId: string, input: UpdateExpenseContributorDto) {
+        const expense = await this.expenseService.findOne(expenseId);
+        if(!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND)
+
+        if (expense.status === ExpenseStatus.FINALIZED) {
+            throw new BadRequestException('Cannot modify a finalized expense');
+        }
+
         await this.contributorRepository.update(
             contributorId,
             {
@@ -71,6 +88,13 @@ export class ExpenseContributorService {
     async delete(id: string) {
         const contributor = await this.contributorRepository.findOneBy({ id })
         if(!contributor) throw new HttpException('Contributor not found', HttpStatus.NOT_FOUND)
+
+        const expense = await this.expenseService.findOne(contributor.expenseId);
+        if(!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND)
+
+        if (expense.status === ExpenseStatus.FINALIZED) {
+            throw new BadRequestException('Cannot modify a finalized expense');
+        }
 
         await this.contributorRepository.delete(id);
 

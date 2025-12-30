@@ -88,8 +88,18 @@ export class ExpensesController {
         if(!isMember) throw new HttpException('You do not have permission to delete this expense', HttpStatus.UNAUTHORIZED)
 
         //todo: add permission to bypass isMember check.
-        //todo: delete participants and contributors and debts?
 
-        await this.expenseService.delete(expense.id)
+        await this.expenseService.delete(expense)
+    }
+
+    @Post(':id/finalize')
+    async finalize(@Param('id') id: string, @User('userId') userId: string) {
+        const expense = await this.expenseService.findOne(id);
+        if(!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND)
+
+        const isMember = await this.memberService.isMember(expense.group, userId)
+        if(!isMember) throw new HttpException('You do not have permission to delete this expense', HttpStatus.UNAUTHORIZED)
+
+        return this.expenseService.finalizeExpense(expense.id);
     }
 }

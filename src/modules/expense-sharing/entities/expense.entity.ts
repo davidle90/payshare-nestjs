@@ -4,6 +4,11 @@ import { ExpenseGroup } from "./expense-group.entity";
 import { ExpenseParticipant } from "./expense-participant.entity";
 import { User } from "../../../modules/users/entities/user.entity";
 
+export enum ExpenseStatus {
+  DRAFT = 'draft',
+  FINALIZED = 'finalized',
+}
+
 @Entity()
 export class Expense {
   @PrimaryGeneratedColumn('uuid')
@@ -26,6 +31,9 @@ export class Expense {
 
   @Column('decimal', { precision: 10, scale: 2, default: 0 })
   totalAmount: number;
+
+  @Column({default: 'draft'})
+  status: ExpenseStatus;
 
   @Column({ default: false })
   isSettled: boolean;

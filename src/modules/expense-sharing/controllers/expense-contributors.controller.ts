@@ -64,7 +64,7 @@ export class ExpenseContributorsController {
         const isAdmin = await this.memberService.isAdmin(expense.group, userId);
         if (!isAdmin) throw new HttpException('You are not authorized to update contributors', HttpStatus.UNAUTHORIZED);
 
-        const contributor = await this.contributorService.update(id, expense.id, input);
+        const contributor = await this.contributorService.update(id, expenseId, input);
         if (!contributor) throw new HttpException('Updated contributor not found', HttpStatus.NOT_FOUND);
 
         return { data: ExpenseContributorMapper.toResponse(contributor) };

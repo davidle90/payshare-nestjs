@@ -1,9 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateExpenseDto } from '../dto/requests/create-expense-dto';
 import { UpdateExpenseDto } from '../dto/requests/update-expense-dto';
-import { Expense } from '../entities/expense.entity';
+import { Expense, ExpenseStatus } from '../entities/expense.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EXPENSE_CHANGED_EVENT } from '../events/expense.events';
 
@@ -80,11 +80,11 @@ export class ExpenseService {
         return this.expenseRepository.findOneBy({ id });
     }
 
-    async delete(id: string) {
-        await this.expenseRepository.delete(id);
+    async delete(expense: Expense) {
+        await this.expenseRepository.delete(expense.id);
 
         this.eventEmitter.emit(EXPENSE_CHANGED_EVENT, {
-            expenseId: id,
+            groupId: expense.groupId
         });
         
         return { success: true };
@@ -96,6 +96,7 @@ export class ExpenseService {
             relations: ['contributors'],
         });
         if(!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND);
+        if (expense.status !== ExpenseStatus.FINALIZED) throw new BadRequestException('Cannot update total for an unfinalized expense');
 
         let totalAmount = 0;
 
@@ -107,6 +108,34 @@ export class ExpenseService {
 
         const updatedExpense = await this.expenseRepository.findOneBy({ id: expenseId });
         return updatedExpense;
+    }
+
+    async finalizeExpense(id: string) {
+        const expense = await this.expenseRepository.findOne({
+            where: { id },
+            relations: ['participants', 'contributors'],
+        });
+
+        if(!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND)
+
+        if (expense.status === ExpenseStatus.FINALIZED) {
+            return expense;
+        }
+
+        const toCents = (v: string | number) => Math.round(Number(v) * 100);
+        const totalOwed = expense.participants.reduce((s, p) => s + toCents(p.amountOwed), 0);
+        const totalPaid = expense.contributors.reduce((s, c) => s + toCents(c.amountPaid), 0);
+
+        if (totalOwed !== totalPaid) {
+            throw new BadRequestException(
+                `Cannot finalize expense: owed (${totalOwed}) ≠ paid (${totalPaid})`,
+            );
+        }
+
+        expense.status = ExpenseStatus.FINALIZED;
+        await this.expenseRepository.save(expense);
+
+        return expense;
     }
 }
 

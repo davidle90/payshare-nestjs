@@ -12,11 +12,20 @@ export class ExpenseListener {
 ) {}
 
   @OnEvent(EXPENSE_CHANGED_EVENT)
-  async handleExpenseChanged(payload: { expenseId: string }) {
+  async handleExpenseChanged(payload: { expenseId?: string; groupId?: string }) {
+      let groupId: string | undefined;
 
-    const expense = await this.expenseService.updateTotalAmount(payload.expenseId);
-    if (expense) {
-      await this.groupService.updateTotalExpenses(expense.groupId);
-    }
+      if (payload.expenseId) {
+          const expense = await this.expenseService.updateTotalAmount(payload.expenseId);
+          groupId = expense?.groupId;
+      }
+
+      if (!groupId && payload.groupId) {
+          groupId = payload.groupId;
+      }
+
+      if (groupId) {
+          await this.groupService.updateTotalExpenses(groupId);
+      }
   }
 }

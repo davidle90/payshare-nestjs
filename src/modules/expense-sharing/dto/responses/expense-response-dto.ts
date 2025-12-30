@@ -12,6 +12,8 @@ export class ExpenseResponseDto {
   description: string;
   currency: string;
   totalAmount: number;
+
+  status: string;
   
   isSettled: boolean;
   editedByUserId: string | null | undefined;
