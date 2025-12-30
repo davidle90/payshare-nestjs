@@ -8,7 +8,7 @@ import { ExpenseDebt } from '../entities/expense-debt.entity';
 
 type BalanceMap = Record<string, Record<string, number>>;
 
-interface Transaction {
+export interface Transaction {
   from: string;
   to: string;
   amount: number;
@@ -96,7 +96,14 @@ export class ExpenseGroupService {
         return await this.groupRepository.delete(id);
     }
 
-    async updateTotalExpenses(group: ExpenseGroup) {
+    async updateTotalExpenses(groupId: string) {
+        const group = await this.groupRepository.findOne({
+            where: { id: groupId },
+            relations: ['expenses'],
+        });
+
+        if (!group) throw new NotFoundException('Group not found');
+
         let totalExpenses = 0;
 
         for (const expense of group.expenses) {
@@ -106,40 +113,30 @@ export class ExpenseGroupService {
         await this.groupRepository.update(group.id, { totalExpenses });
     }
 
-    async calculateBalance(group: ExpenseGroup): Promise<BalanceMap> {
+    async calculateBalance(groupId: string): Promise<BalanceMap> {
+        const group = await this.groupRepository.findOne({
+            where: { id: groupId },
+            relations: [
+                'expenses',
+                'expenses.participants',
+                'expenses.contributors',
+            ],
+        });
+
+        if (!group) throw new NotFoundException('Group not found');
+
         const debts: BalanceMap = {};
         const balance: BalanceMap = {};
 
         // Step 1: Calculate debts in memory
         for (const expense of group.expenses) {
-            const participantsWithoutExpenses = expense.participants.filter(p => p.amountOwed === 0);
-            const participantsWithExpenses = expense.participants.filter(p => p.amountOwed > 0);
-
-            if (!participantsWithoutExpenses.length) continue;
-
-            const totalOwed = participantsWithExpenses.reduce(
-                (sum, p) => sum + Number(p.amountOwed),
-                0,
-            );
-
-            for (const contributor of expense.contributors) {
-                const debtPerMember = (Number(contributor.amountPaid) - totalOwed) / participantsWithoutExpenses.length;
-
-                // Debts to participants without expenses
-                for (const participant of participantsWithoutExpenses) {
+            for (const participant of expense.participants) {
+                for (const contributor of expense.contributors) {
                     if (participant.memberId === contributor.memberId) continue;
 
                     debts[participant.memberId] ??= {};
                     debts[participant.memberId][contributor.memberId] ??= 0;
-                    debts[participant.memberId][contributor.memberId] += debtPerMember;
-                }
 
-                // Debts to participants with expenses
-                for (const participant of participantsWithExpenses) {
-                    if (participant.memberId === contributor.memberId) continue;
-
-                    debts[participant.memberId] ??= {};
-                    debts[participant.memberId][contributor.memberId] ??= 0;
                     debts[participant.memberId][contributor.memberId] += Number(participant.amountOwed);
                 }
             }
@@ -191,9 +188,16 @@ export class ExpenseGroupService {
         return balance;
     }
 
-    async simplifyTransactions(group: ExpenseGroup): Promise<Transaction[]> {
-        const balance = await this.calculateBalance(group);
-        return simplifyBalance(balance);
+    async simplifyBalance(groupId: string): Promise<Transaction[]> {
+        const group = await this.groupRepository.findOne({
+            where: { id: groupId },
+            relations: ['expenses'],
+        });
+
+        if (!group) throw new NotFoundException('Group not found');
+
+        const balance = await this.calculateBalance(group.id);
+        return simplify(balance);
     }
 }
 
@@ -206,7 +210,7 @@ function generateReferenceId(length = 6): string {
   return reference;
 }
 
-function simplifyBalance(balance: BalanceMap): Transaction[] {
+function simplify(balance: BalanceMap): Transaction[] {
     const transactions: Transaction[] = [];
     const processed = new Set<string>(); // avoid double-processing
 

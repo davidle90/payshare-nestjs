@@ -12,7 +12,4 @@ export class CreateExpenseDto {
     
     @IsString()
     currency: string;
-
-    @IsDecimal()
-    totalAmount: number;
 }

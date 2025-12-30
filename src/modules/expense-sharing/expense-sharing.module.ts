@@ -18,6 +18,7 @@ import { User } from '../users/entities/user.entity';
 import { UsersModule } from '../users/users.module';
 import { ExpenseParticipantsController } from './controllers/expense-participants.controller';
 import { ExpenseContributorsController } from './controllers/expense-contributors.controller';
+import { ExpenseListener } from './listeners/expense.listener';
 
 @Module({
   imports: [
@@ -37,7 +38,8 @@ import { ExpenseContributorsController } from './controllers/expense-contributor
     ExpenseGroupService,
     ExpenseGroupMemberService,
     ExpenseParticipantService,
-    ExpenseContributorService
+    ExpenseContributorService,
+    ExpenseListener,
   ],
   controllers: [
     ExpensesController,

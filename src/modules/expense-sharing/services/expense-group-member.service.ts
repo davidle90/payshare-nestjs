@@ -95,7 +95,7 @@ export class ExpenseGroupMemberService {
                 .execute();
         });
 
-        return await this.expenseGroupService.calculateBalance(group);
+        return await this.expenseGroupService.calculateBalance(group.id);
     }
 
     async updateMember(memberId: string, input: UpdateExpenseGroupMemberDto) {

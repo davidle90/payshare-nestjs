@@ -5,12 +5,15 @@ import { Repository } from 'typeorm';
 import { UpdateExpenseParticipantDto } from '../dto/requests/update-expense-participant-dto';
 import { CreateExpenseParticipantDto } from '../dto/requests/create-expense-participant-dto';
 import { ExpenseGroupMemberService } from './expense-group-member.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EXPENSE_CHANGED_EVENT } from '../events/expense.events';
 
 @Injectable()
 export class ExpenseParticipantService {
     constructor(
         @InjectRepository(ExpenseParticipant) private readonly participantRepository: Repository<ExpenseParticipant>,
         private readonly memberService: ExpenseGroupMemberService,
+        private readonly eventEmitter: EventEmitter2,
     ) {}
 
     async findAll(expenseId: string){
@@ -39,6 +42,10 @@ export class ExpenseParticipantService {
 
         await this.participantRepository.save(participant);
 
+        this.eventEmitter.emit(EXPENSE_CHANGED_EVENT, {
+            expenseId,
+        });
+
         return participant;
     }
 
@@ -51,6 +58,10 @@ export class ExpenseParticipantService {
             }
         );
 
+        this.eventEmitter.emit(EXPENSE_CHANGED_EVENT, {
+            expenseId,
+        });
+
         const updatedParticipant = await this.participantRepository.findOneBy({ id: participantId });
         if(!updatedParticipant) throw new HttpException('Updated participant not found', HttpStatus.NOT_FOUND)
 
@@ -58,6 +69,15 @@ export class ExpenseParticipantService {
     }
 
     async delete(id: string) {
-        return await this.participantRepository.delete(id);
+        const participant = await this.participantRepository.findOneBy({ id })
+        if(!participant) throw new HttpException('Participant not found', HttpStatus.NOT_FOUND)
+
+        await this.participantRepository.delete(id);
+
+        this.eventEmitter.emit(EXPENSE_CHANGED_EVENT, {
+            expenseId: participant.expenseId,
+        });
+
+        return { success: true };
     }
 }

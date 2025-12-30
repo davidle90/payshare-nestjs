@@ -6,6 +6,7 @@ export class ExpenseGroupMemberMapper {
   static toResponse(member: ExpenseGroupMember): ExpenseGroupMemberResponseDto {
     return {
       id: member.id,
+      group: member.group,
       role: member.role,
       user: member.user ? UserMapper.toResponse(member.user) : null,
       createdAt: member.createdAt,

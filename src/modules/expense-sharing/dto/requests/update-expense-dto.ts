@@ -10,9 +10,6 @@ export class UpdateExpenseDto {
     @IsString()
     currency: string;
 
-    @IsDecimal()
-    totalAmount: number;
-
     @IsBoolean()
     isSettled: boolean;
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateExpenseDto } from '../dto/requests/create-expense-dto';
@@ -79,6 +79,25 @@ export class ExpenseService {
 
     async delete(id: string) {
         return await this.expenseRepository.delete(id);
+    }
+
+    async updateTotalAmount(expenseId: string) {
+        const expense = await this.expenseRepository.findOne({
+            where: { id: expenseId },
+            relations: ['contributors'],
+        });
+        if(!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND);
+
+        let totalAmount = 0;
+
+        for (const contributor of expense.contributors) {
+            totalAmount += Number(contributor.amountPaid);
+        }
+
+        await this.expenseRepository.update(expenseId, { totalAmount });
+
+        const updatedExpense = await this.expenseRepository.findOneBy({ id: expenseId });
+        return updatedExpense;
     }
 }
 

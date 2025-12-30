@@ -10,9 +10,11 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { InboxModule } from './modules/inbox/inbox.module';
 import { ExpenseSharingModule } from './modules/expense-sharing/expense-sharing.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
+    EventEmitterModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true, load: [databaseConfig] }),
     DatabaseModule,
     UsersModule,
