@@ -96,7 +96,6 @@ export class ExpenseService {
             relations: ['contributors'],
         });
         if(!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND);
-        if (expense.status !== ExpenseStatus.FINALIZED) throw new BadRequestException('Cannot update total for an unfinalized expense');
 
         let totalAmount = 0;
 
@@ -118,9 +117,9 @@ export class ExpenseService {
 
         if(!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND)
 
-        if (expense.status === ExpenseStatus.FINALIZED) {
-            return expense;
-        }
+        // if (expense.status === ExpenseStatus.FINALIZED) {
+        //     return expense;
+        // }
 
         const toCents = (v: string | number) => Math.round(Number(v) * 100);
         const totalOwed = expense.participants.reduce((s, p) => s + toCents(p.amountOwed), 0);
@@ -132,10 +131,12 @@ export class ExpenseService {
             );
         }
 
-        expense.status = ExpenseStatus.FINALIZED;
-        await this.expenseRepository.save(expense);
+        const updatedExpense = await this.updateTotalAmount(expense.id);
+        if(!updatedExpense) throw new HttpException('Updated expense not found', HttpStatus.NOT_FOUND)
+        updatedExpense.status = ExpenseStatus.FINALIZED;
 
-        return expense;
+        await this.expenseRepository.save(updatedExpense);
+        return updatedExpense;
     }
 }
 

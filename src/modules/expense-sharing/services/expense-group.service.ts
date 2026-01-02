@@ -148,6 +148,9 @@ export class ExpenseGroupService {
 
         // Step 1: Calculate debts in memory
         for (const expense of group.expenses) {
+            if(expense.status !== ExpenseStatus.FINALIZED)
+                continue;
+
             for (const participant of expense.participants) {
                 for (const contributor of expense.contributors) {
                     if (participant.memberId === contributor.memberId) continue;
@@ -207,10 +210,6 @@ export class ExpenseGroupService {
     }
 
     async simplifyBalance(groupId: string): Promise<Transaction[]> {
-
-        //todo: fix
-        console.log('todo: simplifyBalance')
-
         const group = await this.groupRepository.findOne({
             where: { id: groupId },
             relations: ['expenses'],
@@ -233,32 +232,42 @@ function generateReferenceId(length = 6): string {
 }
 
 function simplify(balance: BalanceMap): Transaction[] {
-    const transactions: Transaction[] = [];
-    const processed = new Set<string>(); // avoid double-processing
+    const net: Record<string, number> = {};
 
-    const members = Object.keys(balance);
-
-    for (const from of members) {
-        for (const to of members) {
-        if (from === to) continue;
-
-        const key = [from, to].sort().join('-'); // unique pair
-        if (processed.has(key)) continue;
-
-        const fromTo = balance[from][to] || 0;
-        const toFrom = balance[to][from] || 0;
-
-        const netAmount = fromTo - toFrom;
-
-        transactions.push({
-            from,
-            to,
-            amount: netAmount > 0 ? netAmount : 0,
-        });
-
-        processed.add(key);
+    // 1. Compute net balance (SIGNED balances — no double counting)
+    for (const from in balance) {
+        net[from] ??= 0;
+        for (const to in balance[from]) {
+            net[from] += balance[from][to];
         }
     }
 
-    return transactions;
+    // 2. Separate debtors & creditors
+    const debtors = Object.entries(net).filter(([, v]) => v < 0);
+    const creditors = Object.entries(net).filter(([, v]) => v > 0);
+
+    const result: Transaction[] = [];
+    let i = 0, j = 0;
+
+    // 3. Match debtors to creditors (minimal transactions)
+    while (i < debtors.length && j < creditors.length) {
+        const [debtor, debt] = debtors[i];
+        const [creditor, credit] = creditors[j];
+
+        const amount = Math.min(-debt, credit);
+
+        result.push({
+            from: debtor,
+            to: creditor,
+            amount
+        });
+
+        debtors[i][1] += amount;
+        creditors[j][1] -= amount;
+
+        if (debtors[i][1] === 0) i++;
+        if (creditors[j][1] === 0) j++;
+    }
+
+    return result;
 }

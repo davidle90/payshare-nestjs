@@ -5,8 +5,6 @@ import { ExpenseContributor } from '../entities/expense-contributor.entity';
 import { UpdateExpenseContributorDto } from '../dto/requests/update-expense-contributor-dto';
 import { CreateExpenseContributorDto } from '../dto/requests/create-expense-contributor-dto';
 import { ExpenseGroupMemberService } from './expense-group-member.service';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { EXPENSE_CHANGED_EVENT } from '../events/expense.events';
 import { ExpenseService } from './expense.service';
 import { ExpenseStatus } from '../entities/expense.entity';
 
@@ -16,7 +14,6 @@ export class ExpenseContributorService {
         @InjectRepository(ExpenseContributor) private readonly contributorRepository: Repository<ExpenseContributor>,
         private readonly memberService: ExpenseGroupMemberService,
         private readonly expenseService: ExpenseService,
-        private readonly eventEmitter: EventEmitter2,
     ) {}
 
     async findAll(expenseId: string){
@@ -46,16 +43,11 @@ export class ExpenseContributorService {
 
         const contributor = this.contributorRepository.create({
             ...input,
-            expenseId,
+            expenseId: expense.id,
             userId
         });
 
         await this.contributorRepository.save(contributor);
-
-        this.eventEmitter.emit(EXPENSE_CHANGED_EVENT, {
-            expenseId,
-        });
-
         return contributor;
     }
 
@@ -71,13 +63,9 @@ export class ExpenseContributorService {
             contributorId,
             {
                 ...input,
-                expenseId
+                expenseId: expense.id
             }
         );
-
-        this.eventEmitter.emit(EXPENSE_CHANGED_EVENT, {
-            expenseId,
-        });
 
         const updatedContributor = await this.contributorRepository.findOneBy({ id: contributorId });
         if(!updatedContributor) throw new HttpException('Updated contributor not found', HttpStatus.NOT_FOUND)
@@ -97,11 +85,6 @@ export class ExpenseContributorService {
         }
 
         await this.contributorRepository.delete(id);
-
-        this.eventEmitter.emit(EXPENSE_CHANGED_EVENT, {
-            expenseId: contributor.expenseId,
-        });
-
         return { success: true };
     }
 }

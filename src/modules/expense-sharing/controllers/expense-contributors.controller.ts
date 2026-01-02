@@ -26,7 +26,7 @@ export class ExpenseContributorsController {
     @Get(':id')
     async findOne(@Param('id') id: string) {
         const contributor = await this.contributorService.findOne(id);
-        if (!contributor) throw new HttpException('Participant not found', HttpStatus.NOT_FOUND);
+        if (!contributor) throw new HttpException('Contributor not found', HttpStatus.NOT_FOUND);
         return { data: ExpenseContributorMapper.toResponse(contributor) };
     }
 
@@ -40,12 +40,12 @@ export class ExpenseContributorsController {
         if (!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND);
         if (!expense.group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
 
-        const isAdmin = await this.memberService.isAdmin(expense.group, userId);
-        if (!isAdmin) {
-            throw new HttpException('You are not authorized to add participants', HttpStatus.UNAUTHORIZED);
+        const isMember = await this.memberService.isMember(expense.group, userId);
+        if (!isMember) {
+            throw new HttpException('You are not a member in this group', HttpStatus.UNAUTHORIZED);
         }
 
-        const contributor = await this.contributorService.create(expense.id, input);
+        const contributor = await this.contributorService.create(expenseId, input);
 
         return { data: ExpenseContributorMapper.toResponse(contributor) };
     }
@@ -81,7 +81,7 @@ export class ExpenseContributorsController {
         if (!expense.group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
 
         const isAdmin = await this.memberService.isAdmin(expense.group, userId);
-        if (!isAdmin) throw new HttpException('You are not authorized to delete participants', HttpStatus.UNAUTHORIZED);
+        if (!isAdmin) throw new HttpException('You are not authorized to delete contributors', HttpStatus.UNAUTHORIZED);
 
         const contributor = await this.contributorService.findOne(id);
         if (!contributor) throw new HttpException('Contributor not found', HttpStatus.NOT_FOUND);
