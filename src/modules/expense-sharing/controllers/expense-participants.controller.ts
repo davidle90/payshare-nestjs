@@ -7,7 +7,11 @@ import { ExpenseParticipantService } from '../services/expense-participant.servi
 import { CreateExpenseParticipantDto } from '../dto/requests/create-expense-participant-dto';
 import { ExpenseParticipantMapper } from '../mappers/expense-participant.mapper';
 import { UpdateExpenseParticipantDto } from '../dto/requests/update-expense-participant-dto';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { SwaggerFindAllParticipants, SwaggerFindOneParticipant, SwaggerCreateParticipant, SwaggerUpdateParticipant, SwaggerDeleteParticipant } from '../decorators/swagger/participants.swagger.decorators';
 
+@ApiTags('expense-participants')
+@ApiBearerAuth()
 @Controller('expenses/:expenseId/participants')
 @UseGuards(AuthGuard('jwt'))
 export class ExpenseParticipantsController {
@@ -18,12 +22,14 @@ export class ExpenseParticipantsController {
     ) {}
 
     @Get()
+    @SwaggerFindAllParticipants()
     async findAll(@Param('expenseId') expenseId) {
         const participants = await this.participantService.findAll(expenseId);
         return { data: ExpenseParticipantMapper.toResponseList(participants) };
     }
 
     @Get(':id')
+    @SwaggerFindOneParticipant()
     async findOne(@Param('id') id: string) {
         const participant = await this.participantService.findOne(id);
         if (!participant) throw new HttpException('Participant not found', HttpStatus.NOT_FOUND);
@@ -31,6 +37,7 @@ export class ExpenseParticipantsController {
     }
 
     @Post()
+    @SwaggerCreateParticipant()
     async create(
         @Param('expenseId') expenseId: string,
         @Body() input: CreateExpenseParticipantDto,
@@ -51,6 +58,7 @@ export class ExpenseParticipantsController {
     }
 
     @Put(':id')
+    @SwaggerUpdateParticipant()
     async update(
         @Param('id') id: string,
         @Param('expenseId') expenseId: string,
@@ -71,6 +79,7 @@ export class ExpenseParticipantsController {
     }
 
     @Delete(':id')
+    @SwaggerDeleteParticipant()
     async delete(
         @Param('id') id: string,
         @Param('expenseId') expenseId: string,

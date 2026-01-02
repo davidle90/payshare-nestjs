@@ -7,7 +7,11 @@ import { ExpenseGroupMemberService } from '../services/expense-group-member.serv
 import { AuthGuard } from '@nestjs/passport';
 import { User } from 'src/common/decorators/user.decorator';
 import { UsersService } from 'src/modules/users/users.service';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { SwaggerFindAllGroups, SwaggerFindOneGroup, SwaggerCreateGroup, SwaggerUpdateGroup, SwaggerDeleteGroup, SwaggerCalculateBalance, SwaggerSimplifyBalance } from '../decorators/swagger/groups.swagger.decorators';
 
+@ApiTags('expense-groups')
+@ApiBearerAuth()
 @Controller('expense-groups')
 @UseGuards(AuthGuard('jwt'))
 export class ExpenseGroupsController {
@@ -18,6 +22,7 @@ export class ExpenseGroupsController {
     ) {}
 
     @Get()
+    @SwaggerFindAllGroups()
     async findAll(@User('userId') userId: string, @Query('search') search?: string, @Query('includes') includes?: string) {
         const includesArray = includes ? includes.split(',') : [];
         const groups = await this.groupService.findAll({ userId, search, includes: includesArray });
@@ -33,6 +38,7 @@ export class ExpenseGroupsController {
     }
 
     @Get(':id')
+    @SwaggerFindOneGroup()
     async findOne(@Param('id') id: string, @Query('includes') includes?: string) {
         const includesArray = includes ? includes.split(',') : [];
         const group = await this.groupService.findOne(id, includesArray);
@@ -44,6 +50,7 @@ export class ExpenseGroupsController {
     }
 
     @Post()
+    @SwaggerCreateGroup()
     async create(
         @Body(ValidationPipe) input: CreateExpenseGroupDto,
         @User('userId') userId: string
@@ -61,6 +68,7 @@ export class ExpenseGroupsController {
     }
 
     @Put(':id')
+    @SwaggerUpdateGroup()
     async update(@User('userId') userId: string, @Param('id') id: string, @Body(ValidationPipe) input: UpdateExpenseGroupDto) {
         const group = await this.groupService.findOne(id);
         if(!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND)
@@ -76,6 +84,7 @@ export class ExpenseGroupsController {
     }
 
     @Delete(':id')
+    @SwaggerDeleteGroup()
     async delete(@User('userId') userId: string, @Param('id') id: string) {
         const group = await this.groupService.findOne(id);
         if(!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND)
@@ -87,6 +96,7 @@ export class ExpenseGroupsController {
     }
 
     @Get(':id/balance/calculate')
+    @SwaggerCalculateBalance()
     async calculateBalance(@User('userId') userId: string, @Param('id') id: string) {
         const group = await this.groupService.findOne(id);
         if(!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND)
@@ -100,6 +110,7 @@ export class ExpenseGroupsController {
     }
 
     @Get(':id/balance/simplify')
+    @SwaggerSimplifyBalance()
     async simplifyBalance(@User('userId') userId: string, @Param('id') id: string): Promise<{ data: Transaction[] }> {
         const group = await this.groupService.findOne(id);
         if(!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND)

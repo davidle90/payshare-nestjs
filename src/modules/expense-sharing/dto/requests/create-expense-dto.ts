@@ -1,15 +1,32 @@
-import { IsDecimal, IsString } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import { IsString } from 'class-validator';
 
 export class CreateExpenseDto {
-    @IsString()
-    groupId: string;
+  @ApiProperty({
+    description: 'Expense group ID',
+    example: 'grp_123456',
+  })
+  @IsString()
+  groupId: string;
 
-    @IsString()
-    name: string;
+  @ApiProperty({
+    description: 'Expense name',
+    example: 'Dinner at restaurant',
+  })
+  @IsString()
+  name: string;
 
-    @IsString()
-    description: string;
-    
-    @IsString()
-    currency: string;
+  @ApiProperty({
+    description: 'Expense description',
+    example: 'Dinner with friends on Friday',
+  })
+  @IsString()
+  description: string;
+
+  @ApiProperty({
+    description: 'ISO 4217 currency code',
+    example: 'USD',
+  })
+  @IsString()
+  currency: string;
 }

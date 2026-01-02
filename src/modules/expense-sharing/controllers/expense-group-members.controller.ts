@@ -6,7 +6,11 @@ import { UpdateExpenseGroupMemberDto } from '../dto/requests/update-expense-grou
 import { CreateExpenseGroupMemberDto } from '../dto/requests/create-expense-group-member-dto';
 import { ExpenseGroupService } from '../services/expense-group.service';
 import { User } from 'src/common/decorators/user.decorator';
+import { SwaggerFindAllMembers, SwaggerAddMember, SwaggerUpdateMember, SwaggerRemoveMember } from '../decorators/swagger/members.swagger.decorators';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('expense-group-members')
+@ApiBearerAuth()
 @Controller('expense-groups/:groupId/members')
 @UseGuards(AuthGuard('jwt'))
 export class ExpenseGroupMembersController {
@@ -16,6 +20,7 @@ export class ExpenseGroupMembersController {
     ) {}
 
     @Get()
+    @SwaggerFindAllMembers()
     async findAll(@Param('groupId') groupId: string) {
         const group = await this.groupService.findOne(groupId);
         if (!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
@@ -31,12 +36,14 @@ export class ExpenseGroupMembersController {
     }
 
     @Post()
+    @SwaggerAddMember()
     async addMember(@Param('groupId') groupId: string, @Body() input: CreateExpenseGroupMemberDto) {
         const member = await this.memberService.addMember(groupId, input.userId, input.role);
         return { data: ExpenseGroupMemberMapper.toResponse(member)};
     }
 
     @Patch(':memberId')
+    @SwaggerUpdateMember()
     async updateMember(
         @User('userId') userId: string,
         @Param('groupId') groupId: string,
@@ -56,6 +63,7 @@ export class ExpenseGroupMembersController {
     }
 
     @Delete(':memberId')
+    @SwaggerRemoveMember()
     async removeMember(@User('userId') userId: string, @Param('groupId') groupId: string, @Param('memberId') memberId: string) {
         const group = await this.groupService.findOne(groupId);
         if (!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND);

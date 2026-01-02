@@ -7,7 +7,13 @@ import { User } from 'src/common/decorators/user.decorator';
 import { AuthGuard } from '@nestjs/passport';
 import { ExpenseGroupService } from '../services/expense-group.service';
 import { ExpenseGroupMemberService } from '../services/expense-group-member.service';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { FindExpensesQueryDto } from '../dto/queries/find-expenses-query.dto';
+import { FindOneExpenseQueryDto } from '../dto/queries/find-one-expense-query.dto';
+import { SwaggerFindAllExpenses, SwaggerFindOneExpense, SwaggerCreateExpense, SwaggerUpdateExpense, SwaggerDeleteExpense, SwaggerFinalizeExpense } from '../decorators/swagger/expenses.swagger.decorators';
 
+@ApiTags('expenses')
+@ApiBearerAuth()
 @Controller('expenses')
 @UseGuards(AuthGuard('jwt'))
 export class ExpensesController {
@@ -18,9 +24,10 @@ export class ExpensesController {
     ) {}
 
     @Get()
-    async findAll(@User('userId') userId: string, @Query('groupId') groupId?: string, @Query('search') search?: string, @Query('includes') includes?: string) {
-        const includesArray = includes ? includes.split(',') : [];
-        const expenses = await this.expenseService.findAll({groupId, search, includes: includesArray})
+    @SwaggerFindAllExpenses()
+    async findAll(@User('userId') userId: string, @Query() query: FindExpensesQueryDto) {
+        const includesArray = query.includes ? query.includes.split(',') : [];
+        const expenses = await this.expenseService.findAll({groupId: query.groupId, search: query.search, includes: includesArray})
 
         //todo: should fetch only from own groups?
             
@@ -33,8 +40,9 @@ export class ExpensesController {
     }
 
     @Get(':id')
-    async findOne(@User('userId') userId: string, @Param('id') id: string, @Query('includes') includes?: string) {
-        const includesArray = includes ? includes.split(',') : [];
+    @SwaggerFindOneExpense()
+    async findOne(@User('userId') userId: string, @Param('id') id: string, @Query() query: FindOneExpenseQueryDto) {
+        const includesArray = query.includes ? query.includes.split(',') : [];
         const expense = await this.expenseService.findOne(id, includesArray)
         if(!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND)
 
@@ -47,6 +55,7 @@ export class ExpensesController {
     }
 
     @Post()
+    @SwaggerCreateExpense()
     async create(@User('userId') userId: string, @Body(ValidationPipe) input: CreateExpenseDto) {
         const group = await this.groupService.findOne(input.groupId)
         if(!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND)
@@ -63,6 +72,7 @@ export class ExpensesController {
     }
 
     @Put(':id')
+    @SwaggerUpdateExpense()
     async update(@User('userId') userId: string, @Param('id') id: string, @Body(ValidationPipe) input: UpdateExpenseDto) {
         const expense = await this.expenseService.findOne(id);
         if(!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND)
@@ -80,6 +90,7 @@ export class ExpensesController {
     }
 
     @Delete(':id')
+    @SwaggerDeleteExpense()
     async delete(@User('userId') userId: string, @Param('id') id: string) {
         const expense = await this.expenseService.findOne(id);
         if(!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND)
@@ -93,6 +104,7 @@ export class ExpensesController {
     }
 
     @Post(':id/finalize')
+    @SwaggerFinalizeExpense()
     async finalize(@Param('id') id: string, @User('userId') userId: string) {
         const expense = await this.expenseService.findOne(id);
         if(!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND)

@@ -7,7 +7,11 @@ import { CreateExpenseContributorDto } from '../dto/requests/create-expense-cont
 import { ExpenseContributorService } from '../services/expense-contributor.service';
 import { ExpenseContributorMapper } from '../mappers/expense-contributor.mapper';
 import { UpdateExpenseContributorDto } from '../dto/requests/update-expense-contributor-dto';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { SwaggerFindAllContributors, SwaggerFindOneContributor, SwaggerCreateContributor, SwaggerUpdateContributor, SwaggerDeleteContributor } from '../decorators/swagger/contributors.swagger.decorators';
 
+@ApiTags('expense-contributors')
+@ApiBearerAuth()
 @Controller('expenses/:expenseId/contributors')
 @UseGuards(AuthGuard('jwt'))
 export class ExpenseContributorsController {
@@ -18,12 +22,14 @@ export class ExpenseContributorsController {
     ) {}
 
     @Get()
+    @SwaggerFindAllContributors()
     async findAll(@Param('expenseId') expenseId) {
         const contributors = await this.contributorService.findAll(expenseId);
         return { data: ExpenseContributorMapper.toResponseList(contributors) };
     }
 
     @Get(':id')
+    @SwaggerFindOneContributor()
     async findOne(@Param('id') id: string) {
         const contributor = await this.contributorService.findOne(id);
         if (!contributor) throw new HttpException('Contributor not found', HttpStatus.NOT_FOUND);
@@ -31,6 +37,7 @@ export class ExpenseContributorsController {
     }
 
     @Post()
+    @SwaggerCreateContributor()
     async create(
         @Param('expenseId') expenseId: string,
         @Body() input: CreateExpenseContributorDto,
@@ -51,6 +58,7 @@ export class ExpenseContributorsController {
     }
 
     @Put(':id')
+    @SwaggerUpdateContributor()
     async update(
         @Param('id') id: string,
         @Param('expenseId') expenseId: string,
@@ -71,6 +79,7 @@ export class ExpenseContributorsController {
     }
 
     @Delete(':id')
+    @SwaggerDeleteContributor()
     async delete(
         @Param('id') id: string,
         @Param('expenseId') expenseId: string,
