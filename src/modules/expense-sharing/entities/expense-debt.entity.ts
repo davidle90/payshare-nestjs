@@ -1,5 +1,6 @@
-import { Column, CreateDateColumn, Entity, Index, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { ExpenseGroup } from "./expense-group.entity";
+import { User } from "../../../modules/users/entities/user.entity";
 
 @Entity()
 @Index(['groupId', 'fromUserId', 'toUserId'], { unique: true })
@@ -33,4 +34,12 @@ export class ExpenseDebt {
 
   @ManyToOne(() => ExpenseGroup, group => group.debts, { onDelete: 'CASCADE' })
   group: ExpenseGroup;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'fromUserId' })
+  fromUser: User;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'toUserId' })
+  toUser: User;
 }

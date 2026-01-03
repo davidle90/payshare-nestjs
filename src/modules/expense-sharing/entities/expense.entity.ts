@@ -17,7 +17,7 @@ export class Expense {
   @Column()
   groupId: string;
 
-  @Column()
+  @Column({ unique: true})
   referenceId: string;
 
   @Column()
@@ -25,9 +25,6 @@ export class Expense {
 
   @Column()
   description: string;
-  
-  @Column()
-  currency: string;
 
   @Column('decimal', { precision: 10, scale: 2, default: 0 })
   totalAmount: number;

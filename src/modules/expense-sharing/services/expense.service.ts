@@ -43,19 +43,42 @@ export class ExpenseService {
     }
 
     async findOne(referenceId: string, includes: string[] = []) {
-        const qb = this.expenseRepository.createQueryBuilder('expense');
+        const relations = ['group']; // always load group
+        if (includes.includes('participants')) relations.push('participants');
+        if (includes.includes('contributors')) relations.push('contributors');
 
-        qb.where('expense.referenceId = :referenceId', { referenceId })
-            .leftJoinAndSelect('expense.group', 'group')
+        const expense = await this.expenseRepository.findOne({
+            where: { referenceId },
+            relations,
+        });
 
-        if (includes.includes('participants')) {
-            qb.leftJoinAndSelect('expense.participants', 'participants');
-        }
-        if (includes.includes('contributors')) {
-            qb.leftJoinAndSelect('expense.contributors', 'contributors');
-        }
+        return expense;
+    }
 
-        return await qb.getOne();
+    async findById(id: string, includes: string[] = []) {
+        const relations = ['group']; // always load group
+        if (includes.includes('participants')) relations.push('participants');
+        if (includes.includes('contributors')) relations.push('contributors');
+
+        const expense = await this.expenseRepository.findOne({
+            where: { id },
+            relations,
+        });
+
+        return expense;
+    }
+
+    async findByReferenceId(referenceId: string, includes: string[] = []) {
+        const relations = ['group']; // always load group
+        if (includes.includes('participants')) relations.push('participants');
+        if (includes.includes('contributors')) relations.push('contributors');
+
+        const expense = await this.expenseRepository.findOne({
+            where: { referenceId },
+            relations,
+        });
+
+        return expense;
     }
 
     async create(input: CreateExpenseDto) {

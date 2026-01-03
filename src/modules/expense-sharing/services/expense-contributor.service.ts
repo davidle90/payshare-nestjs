@@ -77,7 +77,7 @@ export class ExpenseContributorService {
         const contributor = await this.contributorRepository.findOneBy({ id })
         if(!contributor) throw new HttpException('Contributor not found', HttpStatus.NOT_FOUND)
 
-        const expense = await this.expenseService.findOne(contributor.expenseId);
+        const expense = await this.expenseService.findById(contributor.expenseId);
         if(!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND)
 
         if (expense.status === ExpenseStatus.FINALIZED) {

@@ -1,4 +1,4 @@
-import { IsString } from "class-validator";
+import { IsOptional, IsString } from "class-validator";
 
 export class UpdateExpenseGroupDto {
     @IsString()
@@ -6,4 +6,8 @@ export class UpdateExpenseGroupDto {
 
     @IsString()
     status: string;
+
+    @IsString()
+    @IsOptional()
+    currency: string;
 }

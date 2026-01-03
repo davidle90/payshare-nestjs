@@ -26,7 +26,7 @@ export class AuthController {
   @Public()
   @Post('register')
   async register(@Body(ValidationPipe) input: CreateUserDto) {
-    return this.authService.register(input.name, input.email, input.password);
+    return this.authService.register(input.username, input.email, input.password);
   }
 
   @Public()

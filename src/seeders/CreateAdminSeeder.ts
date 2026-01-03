@@ -20,7 +20,7 @@ export default class CreateUsersSeeder {
     });
     if (!adminExists) {
       const admin = userRepo.create({
-        name: 'admin',
+        username: 'admin',
         email: 'admin@example.com',
         password: await bcrypt.hash('admin123', 10),
         roles: [adminRole],

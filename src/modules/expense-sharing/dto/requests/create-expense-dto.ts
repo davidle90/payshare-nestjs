@@ -1,4 +1,4 @@
-import { IsDecimal, IsString } from "class-validator";
+import { IsString } from "class-validator";
 
 export class CreateExpenseDto {
     @IsString()
@@ -9,7 +9,4 @@ export class CreateExpenseDto {
 
     @IsString()
     description: string;
-    
-    @IsString()
-    currency: string;
 }

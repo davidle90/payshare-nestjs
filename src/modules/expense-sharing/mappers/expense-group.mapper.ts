@@ -9,6 +9,7 @@ export class ExpenseGroupMapper {
       id: group.id,
       referenceId: group.referenceId,
       name: group.name,
+      currency: group.currency,
       totalExpenses: Number(group.totalExpenses),
       status: group.status,
       createdAt: group.createdAt,

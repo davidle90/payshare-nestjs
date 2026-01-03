@@ -6,8 +6,8 @@ export class ExpenseGroupResponseDto {
   referenceId: string;
   name: string;
 
+  currency: string;
   totalExpenses: number;
-
   status: string;
 
   createdAt: Date;

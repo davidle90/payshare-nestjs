@@ -152,13 +152,15 @@ export class ExpenseGroupService {
                 continue;
 
             for (const participant of expense.participants) {
+                const fromUserId = participant.userId;
+
                 for (const contributor of expense.contributors) {
-                    if (participant.memberId === contributor.memberId) continue;
+                    const toUserId = contributor.userId
+                    if (fromUserId === toUserId) continue;
 
-                    debts[participant.memberId] ??= {};
-                    debts[participant.memberId][contributor.memberId] ??= 0;
-
-                    debts[participant.memberId][contributor.memberId] += Number(participant.amountOwed);
+                    debts[fromUserId] ??= {};
+                    debts[fromUserId][toUserId] ??= 0;
+                    debts[fromUserId][toUserId] += Number(participant.amountOwed);
                 }
             }
         }
