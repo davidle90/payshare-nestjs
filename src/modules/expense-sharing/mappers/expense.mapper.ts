@@ -13,7 +13,6 @@ export class ExpenseMapper {
       groupId: expense.groupId,
       name: expense.name,
       description: expense.description,
-      currency: expense.currency,
       totalAmount: Number(expense.totalAmount),
       status: expense.status,
       isSettled: expense.isSettled,

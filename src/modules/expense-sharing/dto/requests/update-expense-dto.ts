@@ -6,9 +6,6 @@ export class UpdateExpenseDto {
 
     @IsString()
     description: string;
-    
-    @IsString()
-    currency: string;
 
     @IsBoolean()
     isSettled: boolean;

@@ -27,13 +27,13 @@ export class AuthService {
     return { access_token: this.jwtService.sign(payload), user: user };
   }
 
-  async register(name: string, email: string, password: string) {
+  async register(username: string, email: string, password: string) {
     const existingUser = await this.userService.findByEmail(email);
     if (existingUser) {
       throw new ConflictException('User with this email already exists');
     }
 
-    const user = await this.userService.create(name, email, password);
+    const user = await this.userService.create(username, email, password);
 
     const verificationToken = this.jwtService.sign(
       { sub: user.id },

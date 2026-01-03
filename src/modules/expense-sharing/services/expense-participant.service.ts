@@ -78,7 +78,7 @@ export class ExpenseParticipantService {
         const participant = await this.participantRepository.findOneBy({ id })
         if(!participant) throw new HttpException('Participant not found', HttpStatus.NOT_FOUND)
 
-        const expense = await this.expenseService.findOne(participant.expenseId);
+        const expense = await this.expenseService.findById(participant.expenseId);
         if(!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND)
 
         if (expense.status === ExpenseStatus.FINALIZED) {

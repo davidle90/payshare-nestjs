@@ -14,6 +14,9 @@ export class ExpenseGroup {
     @Column()
     name: string;
 
+    @Column({ nullable: true })
+    currency: string;
+
     @Column('decimal', { precision: 10, scale: 2, default: 0 })
     totalExpenses: number;
 
