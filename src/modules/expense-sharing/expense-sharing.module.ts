@@ -20,6 +20,7 @@ import { ExpenseParticipantsController } from './controllers/expense-participant
 import { ExpenseContributorsController } from './controllers/expense-contributors.controller';
 import { ExpenseListener } from './listeners/expense.listener';
 import { ExpenseDebtService } from './services/expense-debt.service';
+import { ExpenseDebtsController } from './controllers/expense-debts.controller';
 
 @Module({
   imports: [
@@ -48,7 +49,8 @@ import { ExpenseDebtService } from './services/expense-debt.service';
     ExpenseGroupsController,
     ExpenseGroupMembersController,
     ExpenseParticipantsController,
-    ExpenseContributorsController
+    ExpenseContributorsController,
+    ExpenseDebtsController,
   ],
 })
 export class ExpenseSharingModule {}

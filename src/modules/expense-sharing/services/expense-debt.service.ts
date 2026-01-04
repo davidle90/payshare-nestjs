@@ -12,4 +12,8 @@ export class ExpenseDebtService {
     async findByGroupId(groupId: string) {
         return await this.debtRepository.find({ where: { groupId }, relations: ['fromUser', 'toUser'] });
     }
+
+    async findByUserId(fromUserId: string) {
+        return await this.debtRepository.find({ where: { fromUserId }, relations: ['fromUser', 'toUser'] });
+    }
 }
