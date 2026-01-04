@@ -20,7 +20,12 @@ export class ExpenseParticipantsController {
     @Get()
     async findAll(@Param('expenseId') expenseId) {
         const participants = await this.participantService.findAll(expenseId);
-        return { data: ExpenseParticipantMapper.toResponseList(participants) };
+        return { 
+            data: ExpenseParticipantMapper.toResponseList(participants),
+            meta: {
+                count: participants.length
+            }
+        };
     }
 
     @Get(':id')
