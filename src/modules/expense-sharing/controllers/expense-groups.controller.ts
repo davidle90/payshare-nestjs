@@ -7,14 +7,17 @@ import { ExpenseGroupMemberService } from '../services/expense-group-member.serv
 import { AuthGuard } from '@nestjs/passport';
 import { User } from 'src/common/decorators/user.decorator';
 import { UsersService } from 'src/modules/users/users.service';
+import { ExpenseDebtService } from '../services/expense-debt.service';
+import { ExpenseDebtMapper } from '../mappers/expense-debt.mapper';
 
 @Controller('expense-groups')
 @UseGuards(AuthGuard('jwt'))
 export class ExpenseGroupsController {
     constructor(
-        private groupService: ExpenseGroupService,
-        private memberService: ExpenseGroupMemberService,
-        private userService: UsersService,
+        private readonly groupService: ExpenseGroupService,
+        private readonly memberService: ExpenseGroupMemberService,
+        private readonly userService: UsersService,
+        private readonly debtService: ExpenseDebtService,
     ) {}
 
     @Get()
@@ -102,7 +105,7 @@ export class ExpenseGroupsController {
     @Get(':id/balance/simplify')
     async simplifyBalance(@User('userId') userId: string, @Param('id') id: string): Promise<{ data: Transaction[] }> {
         const group = await this.groupService.findOne(id);
-        if(!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND)
+        if(!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
 
         const isMember = await this.memberService.isMember(group, userId);
         if (!isMember) throw new HttpException('You do not have permission to delete this group', HttpStatus.UNAUTHORIZED);
@@ -110,5 +113,18 @@ export class ExpenseGroupsController {
         const balance = await this.groupService.simplifyBalance(group.id);
 
         return { data: balance }
+    }
+
+    @Get(':id/balance/debts')
+    async getGroupDebts(@User('userId') userId: string, @Param('id') id: string) {
+        const group = await this.groupService.findOne(id);
+        if(!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
+        
+        const isMember = await this.memberService.isMember(group, userId);
+        if (!isMember) throw new HttpException('You do not have permission to delete this group', HttpStatus.UNAUTHORIZED);
+
+        const debts = await this.debtService.findByGroupId(group.id);
+
+        return { data: ExpenseDebtMapper.toResponseList(debts) }
     }
 }
