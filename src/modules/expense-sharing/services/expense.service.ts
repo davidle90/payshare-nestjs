@@ -159,6 +159,11 @@ export class ExpenseService {
         updatedExpense.status = ExpenseStatus.FINALIZED;
 
         await this.expenseRepository.save(updatedExpense);
+
+        this.eventEmitter.emit(EXPENSE_CHANGED_EVENT, {
+            groupId: updatedExpense.groupId
+        });
+
         return updatedExpense;
     }
 }
