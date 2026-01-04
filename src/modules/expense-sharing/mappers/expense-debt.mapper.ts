@@ -8,8 +8,8 @@ export class ExpenseDebtMapper {
       object: 'expense_debt',
       id: debt.id,
       groupId: debt.groupId,
-      fromUser: UserMapper.toResponse(debt.fromUser),
-      toUser: UserMapper.toResponse(debt.toUser),
+      fromUser: debt.fromUser ? UserMapper.toResponse(debt.fromUser) : debt.fromUserId,
+      toUser: debt.toUser ? UserMapper.toResponse(debt.toUser) : debt.toUserId,
       amount: Number(debt.amount),
     };
 

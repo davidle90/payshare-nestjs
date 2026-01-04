@@ -1,6 +1,8 @@
 import { ExpenseGroup } from '../entities/expense-group.entity';
 import { ExpenseGroupResponseDto } from '../dto/responses/expense-group-response-dto';
 import { ExpenseGroupMemberMapper } from './expense-group-member.mapper';
+import { ExpenseMapper } from './expense.mapper';
+import { ExpenseDebtMapper } from './expense-debt.mapper';
 
 export class ExpenseGroupMapper {
   static toResponse(group: ExpenseGroup, includes: string[] = []): ExpenseGroupResponseDto {
@@ -21,11 +23,11 @@ export class ExpenseGroupMapper {
     }
 
     if (includes.includes('expenses') && group.expenses) {
-      response.expenses = group.expenses;
+      response.expenses = ExpenseMapper.toResponseList(group.expenses);
     }
 
     if (includes.includes('debts') && group.debts) {
-      response.debts = group.debts;
+      response.debts = ExpenseDebtMapper.toResponseList(group.debts);
     }
 
     return response;
