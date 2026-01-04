@@ -19,6 +19,7 @@ import { UsersModule } from '../users/users.module';
 import { ExpenseParticipantsController } from './controllers/expense-participants.controller';
 import { ExpenseContributorsController } from './controllers/expense-contributors.controller';
 import { ExpenseListener } from './listeners/expense.listener';
+import { ExpenseDebtService } from './services/expense-debt.service';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { ExpenseListener } from './listeners/expense.listener';
     ExpenseGroupMemberService,
     ExpenseParticipantService,
     ExpenseContributorService,
+    ExpenseDebtService,
     ExpenseListener,
   ],
   controllers: [
