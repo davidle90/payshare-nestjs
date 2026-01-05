@@ -19,10 +19,11 @@ export class ExpenseDebtService {
                 fromUserId,
             },
             relations: ['fromUser', 'toUser', 'group', 'group.members'],
-        }).then(debts => {
-            return debts.filter(debt => 
-                debt.group?.members?.some(member => member.id === fromUserId)
-            );
-        });
+        })
+        // .then(debts => {
+        //     return debts.filter(debt => 
+        //         debt.group?.members?.some(member => member.id === fromUserId)
+        //     );
+        // });
     }
 }
