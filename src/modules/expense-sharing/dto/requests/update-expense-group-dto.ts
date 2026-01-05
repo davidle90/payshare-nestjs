@@ -5,9 +5,6 @@ export class UpdateExpenseGroupDto {
     name: string;
 
     @IsString()
-    status: string;
-
-    @IsString()
     @IsOptional()
     currency: string;
 }
