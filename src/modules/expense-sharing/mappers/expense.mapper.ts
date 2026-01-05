@@ -14,6 +14,7 @@ export class ExpenseMapper {
       name: expense.name,
       description: expense.description,
       totalAmount: Number(expense.totalAmount),
+      category: expense.category,
       status: expense.status,
       isSettled: expense.isSettled,
       editedByUserId: expense.editedByUserId,

@@ -1,4 +1,4 @@
-import { IsString } from "class-validator";
+import { IsOptional, IsString } from "class-validator";
 
 export class CreateExpenseDto {
     @IsString()
@@ -8,5 +8,10 @@ export class CreateExpenseDto {
     name: string;
 
     @IsString()
+    @IsOptional()
     description: string;
+
+    @IsString()
+    @IsOptional()
+    category: string;
 }

@@ -29,6 +29,9 @@ export class Expense {
   @Column('decimal', { precision: 10, scale: 2, default: 0 })
   totalAmount: number;
 
+  @Column({ nullable : true })
+  category: string;
+
   @Column({default: 'draft'})
   status: ExpenseStatus;
 
