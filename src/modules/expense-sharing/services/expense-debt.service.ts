@@ -14,6 +14,15 @@ export class ExpenseDebtService {
     }
 
     async findByUserId(fromUserId: string) {
-        return await this.debtRepository.find({ where: { fromUserId }, relations: ['fromUser', 'toUser'] });
+        return await this.debtRepository.find({
+            where: {
+                fromUserId,
+            },
+            relations: ['fromUser', 'toUser', 'group', 'group.members'],
+        }).then(debts => {
+            return debts.filter(debt => 
+                debt.group?.members?.some(member => member.id === fromUserId)
+            );
+        });
     }
 }

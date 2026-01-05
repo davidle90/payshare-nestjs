@@ -70,29 +70,42 @@ export class ExpenseGroupMemberService {
         const userId = member.user.id;
 
         await this.groupRepository.manager.transaction(async manager => {
+            // Update related records in other tables that reference this member
+            await manager
+                .createQueryBuilder()
+                .update('expense_participant')
+                .set({ memberId: null })  // Set memberId to NULL
+                .where(`"memberId" = :userId AND "expenseId" IN (SELECT "id" FROM "expense" WHERE "groupId" = :groupId)`, { userId, groupId })
+                .execute();
+
+            await manager
+                .createQueryBuilder()
+                .update('expense_contributor')
+                .set({ memberId: null })  // Set memberId to NULL
+                .where(`"memberId" = :userId AND "expenseId" IN (SELECT "id" FROM "expense" WHERE "groupId" = :groupId)`, { userId, groupId })
+                .execute();
+
+            await manager
+                .createQueryBuilder()
+                .update('expense_debt')
+                .set({ fromUserId: null })  // Set related user IDs to NULL
+                .where('groupId = :groupId', { groupId })
+                .andWhere('(fromUserId = :userId)', { userId })
+                .execute();
+
+            await manager
+                .createQueryBuilder()
+                .update('expense_debt')
+                .set({ toUserId: null })  // Set related user IDs to NULL
+                .where('groupId = :groupId', { groupId })
+                .andWhere('(toUserId = :userId)', { userId })
+                .execute();
+
+            // Now, delete the member from the group
             await manager.remove(member);
 
-            await manager
-                .createQueryBuilder()
-                .delete()
-                .from('expense_participant') // table name
-                .where(`"memberId" = :userId AND "expenseId" IN (SELECT "id" FROM "expense" WHERE "groupId" = :groupId)`, { userId, groupId })
-                .execute();
-
-            await manager
-                .createQueryBuilder()
-                .delete()
-                .from('expense_contributor')
-                .where(`"memberId" = :userId AND "expenseId" IN (SELECT "id" FROM "expense" WHERE "groupId" = :groupId)`, { userId, groupId })
-                .execute();
-
-            await manager
-                .createQueryBuilder()
-                .delete()
-                .from('expense_debt')
-                .where('groupId = :groupId', { groupId })
-                .andWhere('(fromUserId = :userId OR toUserId = :userId)', { userId })
-                .execute();
+            // Optionally, you could also delete the group if it's empty and no longer needed
+            // await manager.remove(group);
         });
 
         return await this.expenseGroupService.calculateBalance(group.id);

@@ -60,8 +60,8 @@ export class ExpenseGroupMembersController {
         const group = await this.groupService.findOne(groupId);
         if (!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
 
-        const isAdmin = await this.memberService.isAdmin(group, userId);
-        if (!isAdmin) throw new HttpException('You do not have permission to remove members from this group', HttpStatus.UNAUTHORIZED);
+        const isMember = await this.memberService.isMember(group, userId);
+        if (!isMember) throw new HttpException('You do not have permission to remove members from this group', HttpStatus.UNAUTHORIZED);
 
         await this.memberService.removeMember(group.id, memberId);
     }

@@ -13,7 +13,6 @@ export class ExpenseGroupMapper {
       name: group.name,
       currency: group.currency,
       totalExpenses: Number(group.totalExpenses),
-      status: group.status,
       createdAt: group.createdAt,
       updatedAt: group.updatedAt,
     };

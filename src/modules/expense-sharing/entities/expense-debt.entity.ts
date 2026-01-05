@@ -11,10 +11,10 @@ export class ExpenseDebt {
   @Column()
   groupId: string;
 
-  @Column()
+  @Column({ nullable: true })
   fromUserId: string;
 
-  @Column()
+  @Column({ nullable: true })
   toUserId: string;
 
   @Column('decimal', { precision: 10, scale: 2, default: 0 })
@@ -35,11 +35,11 @@ export class ExpenseDebt {
   @ManyToOne(() => ExpenseGroup, group => group.debts, { onDelete: 'CASCADE' })
   group: ExpenseGroup;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'fromUserId' })
   fromUser: User;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'toUserId' })
   toUser: User;
 }

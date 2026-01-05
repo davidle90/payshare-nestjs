@@ -8,7 +8,6 @@ export class ExpenseGroupResponseDto {
 
   currency: string;
   totalExpenses: number;
-  status: string;
 
   createdAt: Date;
   updatedAt: Date;
