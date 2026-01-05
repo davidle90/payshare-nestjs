@@ -13,6 +13,7 @@ export class ExpenseResponseDto {
   description: string;
   totalAmount: number;
 
+  category: string;
   status: string;
   
   isSettled: boolean;
