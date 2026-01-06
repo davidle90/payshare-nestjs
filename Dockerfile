@@ -23,8 +23,8 @@ WORKDIR /app
 COPY package.json ./
 RUN npm install --omit=dev
 
-# Copy built API files
-COPY --from=builder . ./dist
+# Copy built files
+COPY --from=builder /app/dist /app/dist
 
 ENV NODE_ENV=production
 ENV PORT=3000
