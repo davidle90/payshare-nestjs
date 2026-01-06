@@ -12,7 +12,7 @@ export class ExpenseContributor {
   @Column()
   expenseId: string;
 
-  @Column()
+  @Column({ nullable: true })
   memberId: string;
 
   @Column()
@@ -30,7 +30,7 @@ export class ExpenseContributor {
   @ManyToOne(() => User, user => user.id)
   user: User;
 
-  @ManyToOne(() => ExpenseGroupMember, member => member.id)
+  @ManyToOne(() => ExpenseGroupMember, member => member.id, { nullable: true, onDelete: 'SET NULL' })
   member: ExpenseGroupMember;
 
   @ManyToOne(() => Expense, expense => expense.contributors, { onDelete: 'CASCADE' })

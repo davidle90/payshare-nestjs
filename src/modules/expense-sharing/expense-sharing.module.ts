@@ -19,6 +19,8 @@ import { UsersModule } from '../users/users.module';
 import { ExpenseParticipantsController } from './controllers/expense-participants.controller';
 import { ExpenseContributorsController } from './controllers/expense-contributors.controller';
 import { ExpenseListener } from './listeners/expense.listener';
+import { ExpenseDebtService } from './services/expense-debt.service';
+import { ExpenseDebtsController } from './controllers/expense-debts.controller';
 
 @Module({
   imports: [
@@ -39,6 +41,7 @@ import { ExpenseListener } from './listeners/expense.listener';
     ExpenseGroupMemberService,
     ExpenseParticipantService,
     ExpenseContributorService,
+    ExpenseDebtService,
     ExpenseListener,
   ],
   controllers: [
@@ -46,7 +49,8 @@ import { ExpenseListener } from './listeners/expense.listener';
     ExpenseGroupsController,
     ExpenseGroupMembersController,
     ExpenseParticipantsController,
-    ExpenseContributorsController
+    ExpenseContributorsController,
+    ExpenseDebtsController,
   ],
 })
 export class ExpenseSharingModule {}

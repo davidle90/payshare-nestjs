@@ -11,9 +11,9 @@ export class ExpenseResponseDto {
 
   name: string;
   description: string;
-  currency: string;
   totalAmount: number;
 
+  category: string;
   status: string;
   
   isSettled: boolean;

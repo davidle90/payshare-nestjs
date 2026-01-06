@@ -6,9 +6,10 @@ export class UpdateExpenseDto {
 
     @IsString()
     description: string;
-    
+
     @IsString()
-    currency: string;
+    @IsOptional()
+    category: string;
 
     @IsBoolean()
     isSettled: boolean;
