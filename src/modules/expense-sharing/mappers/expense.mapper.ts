@@ -38,7 +38,15 @@ export class ExpenseMapper {
     return response;
   }
 
-  static toResponseList(expenses: Expense[], includes: string[] = []) {
+  static toResponseList(expenses: Expense[], includes: string[] = [], paginate: number = 0) {
+    if (paginate > 0) {
+      const sortedExpenses = expenses.sort((a, b) => {
+        // Ensure createdAt is treated as a number (timestamp)
+        return b.createdAt.getTime() - a.createdAt.getTime();
+      });
+      return sortedExpenses.slice(0, paginate).map(expense => this.toResponse(expense, includes));
+    }
+
     return expenses.map(expense => this.toResponse(expense, includes));
   }
 }

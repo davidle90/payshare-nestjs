@@ -22,7 +22,7 @@ export class ExpenseGroupMapper {
     }
 
     if (includes.includes('expenses') && group.expenses) {
-      response.expenses = ExpenseMapper.toResponseList(group.expenses);
+      response.expenses = ExpenseMapper.toResponseList(group.expenses, [], 10);
     }
 
     if (includes.includes('debts') && group.debts) {

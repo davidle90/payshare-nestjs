@@ -11,9 +11,6 @@ export class UpdateExpenseDto {
     @IsOptional()
     category: string;
 
-    @IsBoolean()
-    isSettled: boolean;
-
     @IsString()
     @IsOptional()
     editedByUserId?: string;

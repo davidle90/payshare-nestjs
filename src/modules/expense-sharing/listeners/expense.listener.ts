@@ -25,7 +25,8 @@ export class ExpenseListener {
       }
 
       if (groupId) {
-          await this.groupService.updateTotalExpenses(groupId);
+        await this.groupService.calculateBalance(groupId)
+        await this.groupService.updateTotalExpenses(groupId);
       }
   }
 }

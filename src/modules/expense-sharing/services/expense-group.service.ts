@@ -148,7 +148,7 @@ export class ExpenseGroupService {
 
         // Step 1: Calculate debts in memory
         for (const expense of group.expenses) {
-            if(expense.status !== ExpenseStatus.FINALIZED)
+            if(expense.status !== ExpenseStatus.FINALIZED || expense.isSettled)
                 continue;
 
             for (const participant of expense.participants) {

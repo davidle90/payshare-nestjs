@@ -41,9 +41,7 @@ export class ExpenseDebtService {
         }
 
         for (const debt of group.debts) {
-            if (!debt.isSettled) {
-                await this.debtRepository.update(debt.id, { isSettled: true });
-            }
+            await this.debtRepository.delete(debt.id);
         }
 
         return { success: true }

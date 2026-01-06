@@ -100,6 +100,8 @@ export class ExpensesController {
         const isMember = await this.memberService.isMember(expense.group, userId)
         if(!isMember) throw new HttpException('You do not have permission to delete this expense', HttpStatus.UNAUTHORIZED)
 
-        return this.expenseService.finalizeExpense(expense.id);
+        const finalizedExpense = await this.expenseService.finalizeExpense(expense.id);
+
+        return { data: ExpenseMapper.toResponse(finalizedExpense) }
     }
 }

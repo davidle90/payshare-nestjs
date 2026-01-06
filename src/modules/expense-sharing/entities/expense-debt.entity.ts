@@ -20,12 +20,6 @@ export class ExpenseDebt {
   @Column('decimal', { precision: 10, scale: 2, default: 0 })
   amount: number;
 
-  @Column({ default: false })
-  isSettled: boolean;
-
-  @Column({ nullable: true })
-  settledAt: Date;
-
   @CreateDateColumn()
   createdAt: Date;
 
