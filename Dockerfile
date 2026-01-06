@@ -24,7 +24,7 @@ COPY package.json ./
 RUN npm install --omit=dev
 
 # Copy built files
-COPY --from=builder /app/dist /app/dist
+COPY --from=builder . /app/dist
 
 ENV NODE_ENV=production
 ENV PORT=3000
