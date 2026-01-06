@@ -1,3 +1,4 @@
+import { UserMapper } from "src/modules/users/mappers/user.mapper";
 import { ExpenseParticipantResponseDto } from "../dto/responses/expense-participant-response-dto";
 import { ExpenseParticipant } from "../entities/expense-participant.entity";
 
@@ -10,6 +11,7 @@ export class ExpenseParticipantMapper {
       userId: participant.userId,
       memberId: participant.memberId,
       amountOwed: participant.amountOwed,
+      user: participant.user ? UserMapper.toResponse(participant.user) : null,
       createdAt: participant.createdAt,
       updatedAt: participant.updatedAt,
     };

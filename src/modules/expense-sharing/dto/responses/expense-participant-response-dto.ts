@@ -14,7 +14,7 @@ export class ExpenseParticipantResponseDto {
   createdAt: Date;
   updatedAt: Date;
 
-  user?: UserResponseDto;
+  user?: UserResponseDto | null;
   member?: ExpenseGroupMemberResponseDto;
   expense?: ExpenseResponseDto;
 }
