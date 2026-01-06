@@ -69,4 +69,14 @@ export class ExpenseDebtsController {
             }
         }
     }
+
+    @Get('expense-groups/:groupId/balance/settleup')
+    async settleUpByGroup(@Param('groupId') groupId: string) {
+        const group = await this.groupService.findOne(groupId);
+        if (!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND)
+
+        await this.debtService.settleUpByGroupId(group.id);
+
+        return { success: true, message: 'Settle up successful' }
+    }
 }
