@@ -44,8 +44,8 @@ export class ExpenseService {
 
     async findOne(referenceId: string, includes: string[] = []) {
         const relations = ['group']; // always load group
-        if (includes.includes('participants')) relations.push('participants');
-        if (includes.includes('contributors')) relations.push('contributors');
+        if (includes.includes('participants')) relations.push('participants','participants.user');
+        if (includes.includes('contributors')) relations.push('contributors','contributors.user');
 
         const expense = await this.expenseRepository.findOne({
             where: { referenceId },

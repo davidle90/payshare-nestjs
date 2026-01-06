@@ -1,3 +1,4 @@
+import { UserMapper } from "src/modules/users/mappers/user.mapper";
 import { ExpenseContributorResponseDto } from "../dto/responses/expense-contributor-response-dto";
 import { ExpenseContributor } from "../entities/expense-contributor.entity";
 
@@ -10,6 +11,7 @@ export class ExpenseContributorMapper {
       userId: contributor.userId,
       memberId: contributor.memberId,
       amountPaid: contributor.amountPaid,
+      user: contributor.user ? UserMapper.toResponse(contributor.user) : null,
       createdAt: contributor.createdAt,
       updatedAt: contributor.updatedAt,
     };
