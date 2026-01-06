@@ -23,5 +23,8 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false
   },
-  "include": ["src/**/*.ts"]
+  "include": [
+    "src/**/*.ts",
+    "ormconfig.data-source.ts"
+  ]
 }
