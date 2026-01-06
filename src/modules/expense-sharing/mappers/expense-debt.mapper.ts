@@ -8,6 +8,7 @@ export class ExpenseDebtMapper {
       object: 'expense_debt',
       id: debt.id,
       groupId: debt.groupId,
+      isSettled: debt.isSettled,
       fromUser: debt.fromUser ? UserMapper.toResponse(debt.fromUser) : debt.fromUserId,
       toUser: debt.toUser ? UserMapper.toResponse(debt.toUser) : debt.toUserId,
       amount: Number(debt.amount),
