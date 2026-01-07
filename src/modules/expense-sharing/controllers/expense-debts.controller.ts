@@ -21,7 +21,7 @@ export class ExpenseDebtsController {
         if(!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND)
 
         const isMember = await this.memberService.isMember(group, userId);
-        if (!isMember) throw new HttpException('You do not have permission to delete this group', HttpStatus.UNAUTHORIZED);
+        if (!isMember) throw new HttpException('You do not have access to this group', HttpStatus.UNAUTHORIZED);
 
         const balance = await this.groupService.calculateBalance(group.id);
 
@@ -34,7 +34,7 @@ export class ExpenseDebtsController {
         if(!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
 
         const isMember = await this.memberService.isMember(group, userId);
-        if (!isMember) throw new HttpException('You do not have permission to delete this group', HttpStatus.UNAUTHORIZED);
+        if (!isMember) throw new HttpException('You do not have access to this group', HttpStatus.UNAUTHORIZED);
 
         const balance = await this.groupService.simplifyBalance(group.id);
 
@@ -47,7 +47,7 @@ export class ExpenseDebtsController {
         if(!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
         
         const isMember = await this.memberService.isMember(group, userId);
-        if (!isMember) throw new HttpException('You do not have permission to delete this group', HttpStatus.UNAUTHORIZED);
+        if (!isMember) throw new HttpException('You do not have access to this group', HttpStatus.UNAUTHORIZED);
 
         const debts = await this.debtService.findByGroupId(group.id);
 
