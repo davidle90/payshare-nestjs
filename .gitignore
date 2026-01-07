@@ -12,6 +12,13 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+# ignore docker and nginx for railway deployment
+Dockerfile
+docker-compose.yml
+.dockerignore
+/nginx
+*conf
+
 # OS
 .DS_Store
 
