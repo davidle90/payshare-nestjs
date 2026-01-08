@@ -25,7 +25,7 @@ export class AuthService {
 
   login(user: any) {
     const payload = { sub: user.id, email: user.email };
-    return { access_token: this.jwtService.sign(payload), user: user };
+    return { access_token: this.jwtService.sign(payload), user: UserMapper.toResponse(user) };
   }
 
   async register(username: string, email: string, password: string) {
