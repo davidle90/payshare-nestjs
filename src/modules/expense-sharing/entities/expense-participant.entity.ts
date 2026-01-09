@@ -15,7 +15,7 @@ export class ExpenseParticipant {
   @Column({ nullable: true })
   memberId: string;
 
-  @Column()
+  @Column({ nullable: true })
   userId: string;
 
   @Column('decimal', { precision: 10, scale: 2, default: 0 })
@@ -33,6 +33,6 @@ export class ExpenseParticipant {
   @ManyToOne(() => ExpenseGroupMember, member => member.id, { nullable: true, onDelete: 'SET NULL' })
   member: ExpenseGroupMember;
   
-  @ManyToOne(() => User, user => user.id)
+  @ManyToOne(() => User, user => user.id, { nullable: true, onDelete: 'SET NULL' })
   user: User;
 }

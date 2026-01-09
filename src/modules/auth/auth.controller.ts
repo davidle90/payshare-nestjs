@@ -14,6 +14,7 @@ import type { RequestWithUser } from './interfaces/request-with-user.interface';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { Public } from '../../common/decorators/public.decorator';
+import { UserMapper } from '../users/mappers/user.mapper';
 
 @Controller('auth')
 export class AuthController {
@@ -49,10 +50,21 @@ export class AuthController {
   }
 
   @Get('check')
-  checkAuth(@Req() req: RequestWithUser) {
+  async checkAuth(@Req() req: RequestWithUser) {
+    const user = await this.usersService.findById(req.user.id)
+
+    if (!user) {
+      return {
+        success: false,
+        message: 'User not found',
+        user: null,
+      }
+    }
+
     return {
+      success: true,
       message: 'Authenticated',
-      user: req.user,
-    };
+      user: UserMapper.toResponse(user),
+    }
   }
 }

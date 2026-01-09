@@ -259,8 +259,8 @@ function simplify(balance: BalanceMap): Transaction[] {
         const amount = Math.min(-debt, credit);
 
         result.push({
-            from: debtor,
-            to: creditor,
+            from: creditor,
+            to: debtor,
             amount
         });
 

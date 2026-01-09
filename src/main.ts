@@ -6,7 +6,7 @@ async function bootstrap() {
 
   app.enableCors({
     origin: ['https://payshare-client.vercel.app'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['content-type', 'authorization'],
     credentials: true,
   });
