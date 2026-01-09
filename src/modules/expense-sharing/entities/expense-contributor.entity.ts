@@ -15,7 +15,7 @@ export class ExpenseContributor {
   @Column({ nullable: true })
   memberId: string;
 
-  @Column()
+  @Column({ nullable: true })
   userId: string;
 
   @Column('decimal', { precision: 10, scale: 2, default: 0 })
@@ -27,7 +27,7 @@ export class ExpenseContributor {
   @UpdateDateColumn()
   updatedAt: Date;
   
-  @ManyToOne(() => User, user => user.id)
+  @ManyToOne(() => User, user => user.id, { nullable: true, onDelete: 'SET NULL' })
   user: User;
 
   @ManyToOne(() => ExpenseGroupMember, member => member.id, { nullable: true, onDelete: 'SET NULL' })
