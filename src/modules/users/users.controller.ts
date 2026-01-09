@@ -50,6 +50,7 @@ export class UsersController {
 
   @Post()
   @UseGuards(AdminGuard)
+  @UsePipes(new ValidationPipe({ whitelist: true }))
   async create(@Body() createUserDto: CreateUserDto) {
     const { username, email, password } = createUserDto;
 
@@ -70,6 +71,7 @@ export class UsersController {
 
   @Patch('me')
   @UseGuards(AuthGuard('jwt'))
+  @UsePipes(new ValidationPipe({ whitelist: true }))
   async updateMe(
     @User('userId') userId: string,
     @Body() updateUserDto: UpdateUserDto,
@@ -91,6 +93,7 @@ export class UsersController {
 
   @Patch(':id')
   @UseGuards(AdminGuard)
+  @UsePipes(new ValidationPipe({ whitelist: true }))
   async updateById(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateUserDto: UpdateUserDto,
@@ -103,6 +106,7 @@ export class UsersController {
 
   @Patch('/by-username/:username')
   @UseGuards(AdminGuard)
+  @UsePipes(new ValidationPipe({ whitelist: true }))
   async updateByUsername(
     @Param('username') username: string,
     @Body() updateUserDto: UpdateUserDto,
