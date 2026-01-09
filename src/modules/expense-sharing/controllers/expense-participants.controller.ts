@@ -66,8 +66,8 @@ export class ExpenseParticipantsController {
         if (!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND);
         if (!expense.group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
 
-        const isAdmin = await this.memberService.isAdmin(expense.group, userId);
-        if (!isAdmin) throw new HttpException('You are not authorized to update participants', HttpStatus.UNAUTHORIZED);
+        const isMember = await this.memberService.isMember(expense.group, userId);
+        if (!isMember) throw new HttpException('You are not authorized to update participants', HttpStatus.UNAUTHORIZED);
 
         const participant = await this.participantService.update(id, expenseId, input);
         if (!participant) throw new HttpException('Updated participant not found', HttpStatus.NOT_FOUND);
@@ -85,8 +85,8 @@ export class ExpenseParticipantsController {
         if (!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND);
         if (!expense.group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
 
-        const isAdmin = await this.memberService.isAdmin(expense.group, userId);
-        if (!isAdmin) throw new HttpException('You are not authorized to delete participants', HttpStatus.UNAUTHORIZED);
+        const isMember = await this.memberService.isMember(expense.group, userId);
+        if (!isMember) throw new HttpException('You are not authorized to delete participants', HttpStatus.UNAUTHORIZED);
 
         const participant = await this.participantService.findOne(id);
         if (!participant) throw new HttpException('Participant not found', HttpStatus.NOT_FOUND);
