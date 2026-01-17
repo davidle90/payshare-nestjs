@@ -16,8 +16,9 @@ export class ExpenseGroupPolicy implements Policy<ExpenseGroup> {
         return hasRole(user, Roles.ADMIN);
     }
 
-    canCreate(user: User) {
-        return true;
+    canCreate(user: User, group: ExpenseGroup) {
+        if (hasRole(user, Roles.ADMIN)) return true;
+        return this.memberService.isMember(group, user.id);
     }
 
     canRead(user: User, group: ExpenseGroup) {

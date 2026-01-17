@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, Query, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, HttpException, HttpStatus, Param, Post, Put, Query, Req, UseGuards, ValidationPipe } from '@nestjs/common';
 import { ExpenseService } from '../services/expense.service';
 import { CreateExpenseDto } from '../dto/requests/create-expense-dto';
 import { UpdateExpenseDto } from '../dto/requests/update-expense-dto';
@@ -6,7 +6,8 @@ import { ExpenseMapper } from '../mappers/expense.mapper';
 import { User } from 'src/common/decorators/user.decorator';
 import { AuthGuard } from '@nestjs/passport';
 import { ExpenseGroupService } from '../services/expense-group.service';
-import { ExpenseGroupMemberService } from '../services/expense-group-member.service';
+import { ExpenseGroupPolicy } from '../policies/expense-group.policy';
+import { Expense } from '../entities/expense.entity';
 
 @Controller('expenses')
 @UseGuards(AuthGuard('jwt'))
@@ -14,15 +15,20 @@ export class ExpensesController {
     constructor(
         private readonly expenseService: ExpenseService,
         private readonly groupService: ExpenseGroupService,
-        private readonly memberService: ExpenseGroupMemberService,
+        private readonly expenseGroupPolicy: ExpenseGroupPolicy,
+        
     ) {}
 
     @Get()
-    async findAll(@User('userId') userId: string, @Query('groupId') groupId?: string, @Query('search') search?: string, @Query('includes') includes?: string) {
+    async findAll(@Req() req, @Query('groupId') groupId?: string, @Query('search') search?: string, @Query('includes') includes?: string) {
         const includesArray = includes ? includes.split(',') : [];
-        const expenses = await this.expenseService.findAll({groupId, search, includes: includesArray})
+        let expenses: Expense[];
 
-        //todo: should fetch only from own groups?
+        if (!this.expenseGroupPolicy.canReadAll(req.user)) {
+            expenses = await this.expenseService.findAll({groupId, search, includes: includesArray, userId: req.user.id})
+        } else {
+            expenses = await this.expenseService.findAll({groupId, search, includes: includesArray})
+        }
             
         return {
             data: ExpenseMapper.toResponseList(expenses, includesArray),
@@ -33,28 +39,26 @@ export class ExpensesController {
     }
 
     @Get(':id')
-    async findOne(@User('userId') userId: string, @Param('id') id: string, @Query('includes') includes?: string) {
+    async findOne(@Req() req, @Param('id') id: string, @Query('includes') includes?: string) {
         const includesArray = includes ? includes.split(',') : [];
         const expense = await this.expenseService.findOne(id, includesArray)
         if(!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND)
 
-        const isMember = await this.memberService.isMember(expense.group, userId)
-        if(!isMember) throw new HttpException('You do not have permission to view this expense', HttpStatus.UNAUTHORIZED)
-
-        //todo: add permission to bypass isMember check.
+        if (!this.expenseGroupPolicy.canRead(req.user, expense.group)) {
+            throw new ForbiddenException();
+        }
 
         return { data: ExpenseMapper.toResponse(expense, includesArray)}
     }
 
     @Post()
-    async create(@User('userId') userId: string, @Body(ValidationPipe) input: CreateExpenseDto) {
+    async create(@Req() req, @Body(ValidationPipe) input: CreateExpenseDto) {
         const group = await this.groupService.findOne(input.groupId)
         if(!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND)
 
-        const isMember = await this.memberService.isMember(group, userId)
-        if(!isMember) throw new HttpException('You do not have permission to create expense for this group', HttpStatus.UNAUTHORIZED)
-
-        //todo: add permission to bypass isMember check.
+        if (!this.expenseGroupPolicy.canRead(req.user, group)) {
+            throw new ForbiddenException();
+        }
 
         input.groupId = group.id;
 
@@ -63,15 +67,15 @@ export class ExpensesController {
     }
 
     @Put(':id')
-    async update(@User('userId') userId: string, @Param('id') id: string, @Body(ValidationPipe) input: UpdateExpenseDto) {
+    async update(@Req() req, @User('userId') userId: string, @Param('id') id: string, @Body(ValidationPipe) input: UpdateExpenseDto) {
         const expense = await this.expenseService.findOne(id);
         if(!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND)
 
-        const isMember = await this.memberService.isMember(expense.group, userId)
-        if(!isMember) throw new HttpException('You do not have permission to update this expense', HttpStatus.UNAUTHORIZED)
+        if (!this.expenseGroupPolicy.canRead(req.user, expense.group)) {
+            throw new ForbiddenException();
+        }
 
         input.editedByUserId = userId;
-        //todo: add permission to bypass isMember check.
         
         const updatedExpense = await this.expenseService.update(expense.id, input);
         if(!updatedExpense) throw new HttpException('Updated expense not found', HttpStatus.NOT_FOUND)
@@ -80,25 +84,25 @@ export class ExpensesController {
     }
 
     @Delete(':id')
-    async delete(@User('userId') userId: string, @Param('id') id: string) {
+    async delete(@Req() req, @Param('id') id: string) {
         const expense = await this.expenseService.findOne(id);
         if(!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND)
 
-        const isMember = await this.memberService.isMember(expense.group, userId)
-        if(!isMember) throw new HttpException('You do not have permission to delete this expense', HttpStatus.UNAUTHORIZED)
-
-        //todo: add permission to bypass isMember check.
+        if (!this.expenseGroupPolicy.canRead(req.user, expense.group)) {
+            throw new ForbiddenException();
+        }
 
         await this.expenseService.delete(expense)
     }
 
     @Post(':id/finalize')
-    async finalize(@Param('id') id: string, @User('userId') userId: string) {
+    async finalize(@Req() req, @Param('id') id: string) {
         const expense = await this.expenseService.findOne(id);
         if(!expense) throw new HttpException('Expense not found', HttpStatus.NOT_FOUND)
 
-        const isMember = await this.memberService.isMember(expense.group, userId)
-        if(!isMember) throw new HttpException('You do not have permission to delete this expense', HttpStatus.UNAUTHORIZED)
+        if (!this.expenseGroupPolicy.canRead(req.user, expense.group)) {
+            throw new ForbiddenException();
+        }
 
         const finalizedExpense = await this.expenseService.finalizeExpense(expense.id);
 
