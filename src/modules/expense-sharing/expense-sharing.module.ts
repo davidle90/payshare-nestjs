@@ -21,11 +21,14 @@ import { ExpenseContributorsController } from './controllers/expense-contributor
 import { ExpenseListener } from './listeners/expense.listener';
 import { ExpenseDebtService } from './services/expense-debt.service';
 import { ExpenseDebtsController } from './controllers/expense-debts.controller';
+import { AclModule } from '../acl/acl.module';
+import { ExpenseGroupPolicy } from './policies/expense-group.policy';
 
 @Module({
   imports: [
     UsersModule,
     TypeOrmModule.forFeature([
+      AclModule,
       User,
       Expense,
       ExpenseGroup,
@@ -43,6 +46,7 @@ import { ExpenseDebtsController } from './controllers/expense-debts.controller';
     ExpenseContributorService,
     ExpenseDebtService,
     ExpenseListener,
+    ExpenseGroupPolicy,
   ],
   controllers: [
     ExpensesController,
