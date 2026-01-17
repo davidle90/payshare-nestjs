@@ -1,27 +1,27 @@
-import { Controller, UseGuards, Get, Param, HttpException, HttpStatus } from "@nestjs/common";
+import { Controller, UseGuards, Get, Param, HttpException, HttpStatus, ForbiddenException, Req } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
-import { User } from "src/common/decorators/user.decorator";
 import { ExpenseDebtMapper } from "../mappers/expense-debt.mapper";
 import { ExpenseDebtService } from "../services/expense-debt.service";
-import { ExpenseGroupMemberService } from "../services/expense-group-member.service";
 import { ExpenseGroupService, Transaction } from "../services/expense-group.service";
+import { ExpenseGroupPolicy } from "../policies/expense-group.policy";
 
 @Controller()
 @UseGuards(AuthGuard('jwt'))
 export class ExpenseDebtsController {
     constructor(
         private readonly groupService: ExpenseGroupService,
-        private readonly memberService: ExpenseGroupMemberService,
         private readonly debtService: ExpenseDebtService,
+        private readonly expenseGroupPolicy: ExpenseGroupPolicy,
     ) {}
 
     @Get('expense-groups/:groupId/balance/calculate')
-    async calculateBalance(@User('userId') userId: string, @Param('groupId') groupId: string) {
+    async calculateBalance(@Req() req, @Param('groupId') groupId: string) {
         const group = await this.groupService.findOne(groupId);
         if(!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND)
 
-        const isMember = await this.memberService.isMember(group, userId);
-        if (!isMember) throw new HttpException('You do not have access to this group', HttpStatus.UNAUTHORIZED);
+        if (!this.expenseGroupPolicy.isMember(req.user, group)) {
+            throw new ForbiddenException();
+        }
 
         const balance = await this.groupService.calculateBalance(group.id);
 
@@ -29,12 +29,13 @@ export class ExpenseDebtsController {
     }
 
     @Get('expense-groups/:groupId/balance/simplify')
-    async simplifyBalance(@User('userId') userId: string, @Param('groupId') groupId: string): Promise<{ data: Transaction[] }> {
+    async simplifyBalance(@Req() req, @Param('groupId') groupId: string): Promise<{ data: Transaction[] }> {
         const group = await this.groupService.findOne(groupId);
         if(!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
 
-        const isMember = await this.memberService.isMember(group, userId);
-        if (!isMember) throw new HttpException('You do not have access to this group', HttpStatus.UNAUTHORIZED);
+        if (!this.expenseGroupPolicy.isMember(req.user, group)) {
+            throw new ForbiddenException();
+        }
 
         const balance = await this.groupService.simplifyBalance(group.id);
 
@@ -42,12 +43,13 @@ export class ExpenseDebtsController {
     }
 
     @Get('expense-groups/:groupId/balance/debts')
-    async findDebtsByGroup(@User('userId') userId: string, @Param('groupId') groupId: string) {
+    async findDebtsByGroup(@Req() req, @Param('groupId') groupId: string) {
         const group = await this.groupService.findOne(groupId);
         if(!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
         
-        const isMember = await this.memberService.isMember(group, userId);
-        if (!isMember) throw new HttpException('You do not have access to this group', HttpStatus.UNAUTHORIZED);
+        if (!this.expenseGroupPolicy.isMember(req.user, group)) {
+            throw new ForbiddenException();
+        }
 
         const debts = await this.debtService.findByGroupId(group.id);
 

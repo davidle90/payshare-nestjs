@@ -1,24 +1,29 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Patch, Post, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, HttpException, HttpStatus, Param, Patch, Post, Req, UseGuards, ValidationPipe } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ExpenseGroupMemberService } from '../services/expense-group-member.service';
 import { ExpenseGroupMemberMapper } from '../mappers/expense-group-member.mapper';
 import { UpdateExpenseGroupMemberDto } from '../dto/requests/update-expense-group-member-dto';
 import { CreateExpenseGroupMemberDto } from '../dto/requests/create-expense-group-member-dto';
 import { ExpenseGroupService } from '../services/expense-group.service';
-import { User } from 'src/common/decorators/user.decorator';
+import { ExpenseGroupPolicy } from '../policies/expense-group.policy';
 
 @Controller('expense-groups/:groupId/members')
 @UseGuards(AuthGuard('jwt'))
 export class ExpenseGroupMembersController {
     constructor(
         private readonly groupService: ExpenseGroupService,
-        private readonly memberService: ExpenseGroupMemberService
+        private readonly memberService: ExpenseGroupMemberService,
+        private readonly expenseGroupPolicy: ExpenseGroupPolicy,
     ) {}
 
     @Get()
-    async findAll(@Param('groupId') groupId: string) {
+    async findAll(@Req() req, @Param('groupId') groupId: string) {
         const group = await this.groupService.findOne(groupId);
         if (!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
+
+        if (!this.expenseGroupPolicy.isMember(req.user, group)) {
+            throw new ForbiddenException();
+        }
 
         const members = await this.memberService.findAll(group.id);
 
@@ -38,7 +43,7 @@ export class ExpenseGroupMembersController {
 
     @Patch(':memberId')
     async updateMember(
-        @User('userId') userId: string,
+        @Req() req,
         @Param('groupId') groupId: string,
         @Param('memberId') memberId: string,
         @Body(ValidationPipe) input: UpdateExpenseGroupMemberDto,
@@ -46,8 +51,9 @@ export class ExpenseGroupMembersController {
         const group = await this.groupService.findOne(groupId);
         if (!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
 
-        const isAdmin = await this.memberService.isAdmin(group, userId);
-        if (!isAdmin) throw new HttpException('You do not have permission to update members in this group', HttpStatus.UNAUTHORIZED);
+        if (!this.expenseGroupPolicy.isAdmin(req.user, group)) {
+            throw new ForbiddenException();
+        }
 
         const updatedMember = await this.memberService.updateMember(memberId, input);
         if (!updatedMember) throw new HttpException('Updated member not found', HttpStatus.NOT_FOUND);
@@ -56,12 +62,13 @@ export class ExpenseGroupMembersController {
     }
 
     @Delete(':memberId')
-    async removeMember(@User('userId') userId: string, @Param('groupId') groupId: string, @Param('memberId') memberId: string) {
+    async removeMember(@Req() req, @Param('groupId') groupId: string, @Param('memberId') memberId: string) {
         const group = await this.groupService.findOne(groupId);
         if (!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
 
-        const isMember = await this.memberService.isMember(group, userId);
-        if (!isMember) throw new HttpException('You do not have permission to remove members from this group', HttpStatus.UNAUTHORIZED);
+        if (!this.expenseGroupPolicy.isAdmin(req.user, group)) {
+            throw new ForbiddenException();
+        }
 
         await this.memberService.removeMember(group.id, memberId);
     }

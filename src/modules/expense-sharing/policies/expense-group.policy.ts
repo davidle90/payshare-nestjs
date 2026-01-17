@@ -16,6 +16,21 @@ export class ExpenseGroupPolicy implements Policy<ExpenseGroup> {
         return hasRole(user, Roles.ADMIN);
     }
 
+    isOwner(user: User, group: ExpenseGroup) {
+        if (hasRole(user, Roles.ADMIN)) return true;
+        return this.memberService.isOwner(group, user.id);
+    }
+
+    isAdmin(user: User, group: ExpenseGroup) {
+        if (hasRole(user, Roles.ADMIN)) return true;
+        return this.memberService.isAdmin(group, user.id);
+    }
+
+    isMember(user: User, group: ExpenseGroup) {
+        if (hasRole(user, Roles.ADMIN)) return true;
+        return this.memberService.isMember(group, user.id);
+    }
+
     canCreate(user: User, group: ExpenseGroup) {
         if (hasRole(user, Roles.ADMIN)) return true;
         return this.memberService.isMember(group, user.id);
