@@ -22,6 +22,35 @@ export class ExpenseGroupService {
         @InjectRepository(ExpenseDebt) private readonly debtRepository: Repository<ExpenseDebt>,
     ) {}
 
+    async index({ search, includes }: { search?: string, includes?: string[] }) {
+        const qb = this.groupRepository.createQueryBuilder('expenseGroup');
+
+        qb.leftJoinAndSelect('expenseGroup.members', 'members');
+
+        if (includes?.includes('members')) {
+        qb.leftJoinAndSelect('members.user', 'user');
+        }
+
+        if (includes?.includes('expenses')) {
+            qb.leftJoinAndSelect('expenseGroup.expenses', 'expenses');
+        }
+        
+        if (includes?.includes('debts')) {
+            qb.leftJoinAndSelect('expenseGroup.debts', 'debts');
+        }
+
+        if (search?.trim()) {
+            qb.andWhere(
+            '(expenseGroup.name ILIKE :search OR expenseGroup.referenceId ILIKE :search)',
+            { search: `%${search.trim()}%` },
+            );
+        }
+
+        qb.orderBy('expenseGroup.createdAt', 'DESC');
+
+        return qb.getMany();
+    }
+
     async findAll({ userId, search, includes }: { userId: string, search?: string, includes?: string[] }) {
         const qb = this.groupRepository
             .createQueryBuilder('expenseGroup')

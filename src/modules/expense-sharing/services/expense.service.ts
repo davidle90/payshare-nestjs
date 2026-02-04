@@ -14,9 +14,15 @@ export class ExpenseService {
         private readonly eventEmitter: EventEmitter2,
     ) {}
 
-    async findAll({ groupId, search, includes }: { groupId?: string, search?: string, includes?: string[] }) {
+    async findAll({ groupId, search, includes, userId }: { groupId?: string, search?: string, includes?: string[], userId?: string }) {
         const qb = this.expenseRepository.createQueryBuilder('expense')
             .leftJoinAndSelect('expense.group', 'group');
+
+        if (userId) {
+            qb.innerJoin('group.members', 'member')
+                .innerJoin('member.user', 'user')
+                .andWhere('user.id = :userId', { userId });
+        }
 
         if (includes?.includes('participants')) {
             qb.leftJoinAndSelect('expense.participants', 'participants');

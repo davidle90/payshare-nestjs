@@ -131,6 +131,14 @@ export class ExpenseGroupMemberService {
         return await `${userId} has been invited to join the group "${groupId}".`
     }
 
+    async isOwner(group: ExpenseGroup, userId: string) {
+        const isAdmin = await this.memberRepository.exists({
+            where: { group: { id: group.id }, user: { id: userId }, role: In(['owner']) }
+        });
+
+        return isAdmin;
+    }
+
     async isAdmin(group: ExpenseGroup, userId: string) {
         const isAdmin = await this.memberRepository.exists({
             where: { group: { id: group.id }, user: { id: userId }, role: In(['admin', 'owner']) }

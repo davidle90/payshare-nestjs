@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, Query, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, HttpException, HttpStatus, Param, Post, Put, Query, Req, UseGuards, ValidationPipe } from '@nestjs/common';
 import { ExpenseGroupService } from '../services/expense-group.service';
 import { CreateExpenseGroupDto } from '../dto/requests/create-expense-group-dto';
 import { UpdateExpenseGroupDto } from '../dto/requests/update-expense-group-dto';
@@ -7,6 +7,8 @@ import { ExpenseGroupMemberService } from '../services/expense-group-member.serv
 import { AuthGuard } from '@nestjs/passport';
 import { User } from 'src/common/decorators/user.decorator';
 import { UsersService } from 'src/modules/users/users.service';
+import { ExpenseGroupPolicy } from '../policies/expense-group.policy';
+import { ExpenseGroup } from '../entities/expense-group.entity';
 
 @Controller('expense-groups')
 @UseGuards(AuthGuard('jwt'))
@@ -15,14 +17,19 @@ export class ExpenseGroupsController {
         private readonly groupService: ExpenseGroupService,
         private readonly memberService: ExpenseGroupMemberService,
         private readonly userService: UsersService,
+        private readonly expenseGroupPolicy: ExpenseGroupPolicy,
     ) {}
 
     @Get()
-    async findAll(@User('userId') userId: string, @Query('search') search?: string, @Query('includes') includes?: string) {
+    async findAll(@Req() req, @User('userId') userId: string, @Query('search') search?: string, @Query('includes') includes?: string) {
         const includesArray = includes ? includes.split(',') : [];
-        const groups = await this.groupService.findAll({ userId, search, includes: includesArray });
+        let groups: ExpenseGroup[];
 
-        //todo: add permission to get all;
+        if (!this.expenseGroupPolicy.canReadAll(req.user)) {
+              groups = await this.groupService.index({ search, includes: includesArray });
+        } else {
+            groups = await this.groupService.findAll({ userId, search, includes: includesArray });
+        }
 
         return {
             data: ExpenseGroupMapper.toResponseList(groups, includesArray),
@@ -33,10 +40,14 @@ export class ExpenseGroupsController {
     }
 
     @Get(':id')
-    async findOne(@Param('id') id: string, @Query('includes') includes?: string) {
+    async findOne(@Req() req, @Param('id') id: string, @Query('includes') includes?: string) {
         const includesArray = includes ? includes.split(',') : [];
         const group = await this.groupService.findOne(id, includesArray);
         if(!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND)
+
+        if (!this.expenseGroupPolicy.canRead(req.user, group)) {
+            throw new ForbiddenException();
+        }
 
         return {
             data: ExpenseGroupMapper.toResponse(group, includesArray),
