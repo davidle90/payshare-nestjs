@@ -4,16 +4,25 @@ import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { UsersService } from '../src/modules/users/users.service';
 import { JwtService } from '@nestjs/jwt';
+import { DataSource } from 'typeorm';
+import { MailService } from '../src/modules/mail/mail.service';
 
 describe('Auth E2E (AuthModule)', () => {
   let app: INestApplication;
   let jwtService: JwtService;
   let usersService: UsersService;
 
+  const mockMailService = {
+    sendVerificationEmail: jest.fn().mockResolvedValue('http://mock-verification-url'),
+  };
+
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(MailService)
+      .useValue(mockMailService) // prevent real emails
+      .compile();
 
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
@@ -21,6 +30,17 @@ describe('Auth E2E (AuthModule)', () => {
 
     jwtService = app.get(JwtService);
     usersService = app.get(UsersService);
+
+    // Reset the database
+    const dataSource = app.get(DataSource);
+    const entities = dataSource.entityMetadatas;
+
+    for (const entity of entities) {
+      const repository = dataSource.getRepository(entity.name);
+      await repository.query(
+        `TRUNCATE TABLE "${entity.tableName}" RESTART IDENTITY CASCADE;`,
+      );
+    }
   });
 
   afterAll(async () => {
@@ -42,9 +62,8 @@ describe('Auth E2E (AuthModule)', () => {
 
     expect(registerResponse.body.user).toBeDefined();
     expect(registerResponse.body.access_token).toBeDefined();
-    expect(registerResponse.body.verification_url).toBeDefined();
+    expect(registerResponse.body.verification_url).toBe('http://mock-verification-url');
 
-    // Extract verification token from URL (simulate real flow)
     const verificationToken = registerResponse.body.access_token;
 
     // 2️⃣ Verify email
@@ -55,7 +74,7 @@ describe('Auth E2E (AuthModule)', () => {
         expect(res.body.message).toBe('Email verified successfully!');
       });
 
-    // Optionally check that user is marked verified in DB
+    // Confirm in DB
     const user = await usersService.findByEmail(registerDto.email);
     expect(user.emailVerified).toBe(true);
 
@@ -65,8 +84,8 @@ describe('Auth E2E (AuthModule)', () => {
       .send({ email: registerDto.email, password: registerDto.password })
       .expect(201);
 
-    expect(loginResponse.body.access_token).toBeDefined();
     const jwt = loginResponse.body.access_token;
+    expect(jwt).toBeDefined();
 
     // 4️⃣ checkAuth
     await request(app.getHttpServer())
