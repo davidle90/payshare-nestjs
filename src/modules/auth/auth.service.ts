@@ -11,8 +11,16 @@ export class AuthService {
     private userService: UsersService,
     private jwtService: JwtService,
     private mailService: MailService,
-  ) {}
+  ) { }
 
+  /**
+  * Validates a user by email and password.
+  *
+  * @param email - The user's email.
+  * @param password - The user's plaintext password.
+  * @returns The user object if credentials are valid.
+  * @throws UnauthorizedException if the user does not exist or password is wrong.
+  */
   async validateUser(email: string, password: string) {
     const user = await this.userService.findByEmail(email);
     if (!user) throw new UnauthorizedException('Invalid credentials');
@@ -23,11 +31,27 @@ export class AuthService {
     return user;
   }
 
+  /**
+  * Logs in a user and returns an access token.
+  *
+  * @param user - The authenticated user object
+  * @returns An object containing JWT access token and mapped user response
+  */
   login(user: any) {
     const payload = { sub: user.id, email: user.email };
     return { access_token: this.jwtService.sign(payload), user: UserMapper.toResponse(user) };
   }
 
+  /**
+  * Registers a new user and sends a verification email.
+  *
+  * @param username - The user's username
+  * @param email - The user's email
+  * @param password - The user's plaintext password
+  * @returns Object containing user data, verification URL, and access token
+  *
+  * @throws ConflictException if a user with the email already exists
+  */
   async register(username: string, email: string, password: string) {
     const existingUser = await this.userService.findByEmail(email);
     if (existingUser) {
