@@ -1,4 +1,4 @@
-import { UserMapper } from 'src/modules/users/mappers/user.mapper';
+import { UserMapper } from './../../users/mappers/user.mapper';
 import { ExpenseGroupMemberResponseDto } from '../dto/responses/expense-group-member-response-dto';
 import { ExpenseGroupMember } from '../entities/expense-group-member.entity';
 
@@ -13,7 +13,7 @@ export class ExpenseGroupMemberMapper {
       updatedAt: member.updatedAt,
     };
 
-    if(member.group) {
+    if (member.group) {
       response.group = {
         object: 'expense_group',
         referenceId: member.group.referenceId,

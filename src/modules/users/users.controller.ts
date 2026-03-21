@@ -20,11 +20,11 @@ import { UpdateUserDto } from './dto/update-user-dto';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { User } from 'src/common/decorators/user.decorator';
+import { User } from './../../../src/common/decorators/user.decorator';
 
 @Controller('users')
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(private usersService: UsersService) { }
 
   @Get()
   async findAll() {
