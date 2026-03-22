@@ -1,4 +1,4 @@
-import { UserMapper } from "src/modules/users/mappers/user.mapper";
+import { UserMapper } from "./../../users/mappers/user.mapper";
 import { ExpenseContributorResponseDto } from "../dto/responses/expense-contributor-response-dto";
 import { ExpenseContributor } from "../entities/expense-contributor.entity";
 

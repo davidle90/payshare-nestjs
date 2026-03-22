@@ -5,8 +5,8 @@ import { UpdateExpenseGroupDto } from '../dto/requests/update-expense-group-dto'
 import { ExpenseGroupMapper } from '../mappers/expense-group.mapper';
 import { ExpenseGroupMemberService } from '../services/expense-group-member.service';
 import { AuthGuard } from '@nestjs/passport';
-import { User } from 'src/common/decorators/user.decorator';
-import { UsersService } from 'src/modules/users/users.service';
+import { User } from './../../../common/decorators/user.decorator';
+import { UsersService } from './../../../modules/users/users.service';
 import { ExpenseGroupPolicy } from '../policies/expense-group.policy';
 import { ExpenseGroup } from '../entities/expense-group.entity';
 
