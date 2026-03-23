@@ -26,9 +26,9 @@ export class ExpenseGroupsController {
         let groups: ExpenseGroup[];
 
         if (!this.expenseGroupPolicy.canReadAll(req.user)) {
-            groups = await this.groupService.index({ search, includes: includesArray });
-        } else {
             groups = await this.groupService.findAll({ userId, search, includes: includesArray });
+        } else {
+            groups = await this.groupService.index({ search, includes: includesArray });
         }
 
         return {
